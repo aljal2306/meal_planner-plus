@@ -1,0 +1,203 @@
+/* -----------------------------------------------------
+    1. GENERAL STYLES & LAYOUT
+    -----------------------------------------------------
+*/
+:root {
+    --primary-color: #2c3e50;
+    --accent-color: #3498db;
+    --background-color: #f4f7f9;
+    --card-color: #ffffff;
+    --text-color: #2d3436;
+    --border-color: #e0e6e9;
+}
+
+/* A simple CSS reset for consistent styling */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 1rem;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.section {
+    background-color: var(--card-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/*
+    -----------------------------------------------------
+    2. TYPOGRAPHY
+    -----------------------------------------------------
+*/
+h1, h2, h3 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/*
+    -----------------------------------------------------
+    3. FORM & BUTTONS
+    -----------------------------------------------------
+*/
+#recipe-form input,
+#recipe-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--accent-color);
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+/* Style for buttons within the recipe list */
+#recipe-list button {
+    display: inline-block;
+    width: auto;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/*
+    -----------------------------------------------------
+    4. RECIPE LIST & CONTENT
+    -----------------------------------------------------
+*/
+#recipe-list div {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #fafbfc;
+}
+
+#recipe-list h3 {
+    margin-bottom: 0;
+}
+
+/*
+    -----------------------------------------------------
+    5. GROCERY LIST
+    -----------------------------------------------------
+*/
+#grocery-list {
+    list-style-type: none;
+}
+
+#grocery-list li {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#grocery-list li input[type="checkbox"] {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Add a style for "finalized" items */
+#grocery-list li:has(input:checked) {
+    color: #95a5a6;
+    text-decoration: line-through;
+}
+
+/*
+    -----------------------------------------------------
+    6. MOBILE & RESPONSIVE DESIGN
+    -----------------------------------------------------
+*/
+@media (min-width: 768px) {
+    body {
+        padding: 2rem;
+    }
+    #recipe-list button,
+    #recipe-list input,
+    #recipe-list textarea {
+        display: inline;
+    }
+}
+
+/*
+    -----------------------------------------------------
+    7. PRINT STYLES (for the Cookbook)
+    -----------------------------------------------------
+*/
+@media print {
+    body {
+        background-color: white;
+        font-size: 12pt;
+        color: black;
+    }
+
+    /* Hide elements that should not be in the printed version */
+    .section,
+    h1,
+    p,
+    button,
+    hr {
+        display: none;
+    }
+
+    /* Show only the content from the recipe list */
+    #recipe-list {
+        display: block !important;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .recipe-print {
+        page-break-after: always; /* Ensure each recipe starts on a new page */
+        padding: 0;
+        margin: 0;
+    }
+    
+    .recipe-print h2 {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .recipe-print h3 {
+        margin-top: 1.5rem;
+    }
+}
