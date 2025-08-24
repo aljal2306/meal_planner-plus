@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe & Meal Planner</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Recipe & Meal Planner 🍳</h1>
+
+        <div class="section">
+            <h2>My Recipes</h2>
+            <p>Add a new recipe or edit an existing one.</p>
+            
+            <form id="recipe-form">
+                <input type="hidden" id="recipe-id"> <input type="text" id="recipe-name" placeholder="Recipe Name" required>
+                
+                <input type="text" id="recipe-category" placeholder="Category (e.g., Dinner, Dessert)">
+                
+                <textarea id="recipe-ingredients" rows="5" placeholder='Ingredients in JSON format, like: [{"item":"Flour", "qty":"1 cup"}]'></textarea>
+                
+                <textarea id="recipe-instructions" rows="5" placeholder="Instructions (one step per line)"></textarea>
+                
+                <button type="submit">Save Recipe</button>
+            </form>
+            
+            <hr>
+            
+            <h3>Saved Recipes</h3>
+            <div id="recipe-list">
+                </div>
+            
+            <button id="print-cookbook-btn">Generate Printable Cookbook</button>
+        </div>
+        
+
+        <div class="section">
+            <h2>Weekly Meal Plan</h2>
+            <p>Assign recipes to each day of the week.</p>
+            
+            <div id="meal-planner">
+                </div>
+        </div>
+
+
+        <div class="section">
+            <h2>Grocery List</h2>
+            <p>Generate a shopping list based on your meal plan.</p>
+            
+            <button id="generate-list-btn">Generate Grocery List</button>
+            
+            <ul id="grocery-list">
+                </ul>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
