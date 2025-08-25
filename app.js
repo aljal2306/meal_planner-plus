@@ -36,7 +36,7 @@ async function loadRecipes() {
     }
     allRecipes = data;
     populateCategoryFilter();
-    renderRecipes(categoryFilter.value);
+    renderRecipes(categoryFilter.value); // Render based on the current filter
 }
 
 function populateCategoryFilter() {
@@ -45,25 +45,33 @@ function populateCategoryFilter() {
     const currentFilter = categoryFilter.value;
     categoryFilter.innerHTML = '';
 
+    const defaultOption = document.createElement('option');
+    defaultOption.value = ""; // An empty value will signal to hide the list
+    defaultOption.textContent = "Select a category...";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    categoryFilter.appendChild(defaultOption);
+
     categories.forEach(category => {
         const option = document.createElement('option');
         option.value = category;
         option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
         categoryFilter.appendChild(option);
     });
-    categoryFilter.value = currentFilter;
+
+    if (currentFilter) {
+        categoryFilter.value = currentFilter;
+    }
 }
 
-function renderRecipes(filter = 'all') {
-    // If no filter is selected (on initial load), do nothing.
+function renderRecipes(filter) {
     if (!filter) {
         recipeList.classList.add('hidden');
         return;
     }
 
-    recipeList.innerHTML = ''; // Clear the current list
+    recipeList.innerHTML = '';
 
-    // Filter the recipes based on the selected category
     const filteredRecipes = (filter === 'all')
         ? allRecipes
         : allRecipes.filter(recipe => recipe.category === filter);
@@ -85,10 +93,8 @@ function renderRecipes(filter = 'all') {
             recipeList.appendChild(recipeEl);
         });
     }
-    // Make the recipe list visible
     recipeList.classList.remove('hidden');
 }
-
 
 async function handleFormSubmit(event) {
     event.preventDefault();
