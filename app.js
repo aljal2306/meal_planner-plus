@@ -31,7 +31,10 @@ async function loadRecipes() {
     recipes.forEach(recipe => {
         const recipeEl = document.createElement('div');
         recipeEl.innerHTML = `
-            <h3>${recipe.name}</h3>
+            <div class="recipe-header">
+                <input type="checkbox" class="recipe-checkbox" value="${recipe.id}">
+                <h3>${recipe.name}</h3>
+            </div>
             <p>Category: ${recipe.category}</p>
             <button onclick="populateFormForEdit(${recipe.id})">Edit</button>
             <button onclick="deleteRecipe(${recipe.id})">Delete</button>
@@ -176,7 +179,9 @@ async function addRecipeToMealPlan(date, recipeId) {
 
 async function generateGroceryList() {
     const today = new Date();
-    const nextWeek = new Date();
+    today.setHours(0, 0, 0, 0); // Fix: sets the time to midnight
+
+    const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
 
     const { data: plan, error: planError } = await supabase.from('meal_plan').select('recipe_id')
@@ -184,7 +189,7 @@ async function generateGroceryList() {
         .lte('plan_date', nextWeek.toISOString().split('T')[0]);
 
     if (planError) { console.error('Error fetching plan for grocery list:', planError); return; }
-    if (plan.length === 0) { groceryList.innerHTML = '<li>No meals planned.</li>'; return; }
+    if (plan.length === 0) { groceryList.innerHTML = '<li>No meals planned in the next 7 days.</li>'; return; }
 
     const recipeIds = plan.map(item => item.recipe_id);
     const { data: recipes, error: recipeError } = await supabase.from('recipes').select('ingredients').in('id', recipeIds);
@@ -207,12 +212,26 @@ async function generateGroceryList() {
     });
 }
 
+// -----------------------------------------------------------------------------
+// 5. COOKBOOK & CALENDAR FUNCTIONS
+// -----------------------------------------------------------------------------
+
 async function printCookbook() {
-    const { data: recipes, error } = await supabase.from('recipes').select('*').order('name');
-    if (error) {
-        console.error('Error fetching recipes for cookbook:', error);
+    const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
+    const selectedIds = Array.from(checkedBoxes).map(box => box.value);
+
+    if (selectedIds.length === 0) {
+        alert('Please select at least one recipe to include in your cookbook.');
         return;
     }
+
+    const { data: recipes, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .in('id', selectedIds)
+        .order('name');
+
+    if (error) { console.error('Error fetching selected recipes for cookbook:', error); return; }
 
     let printHtml = `
         <html>
@@ -249,9 +268,8 @@ async function printCookbook() {
     printWindow.print();
 }
 
-
 // -----------------------------------------------------------------------------
-// 5. EVENT LISTENERS & INITIALIZATION
+// 6. EVENT LISTENERS & INITIALIZATION
 // -----------------------------------------------------------------------------
 
 recipeForm.addEventListener('submit', handleFormSubmit);
