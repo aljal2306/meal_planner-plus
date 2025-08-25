@@ -55,9 +55,16 @@ function populateCategoryFilter() {
 }
 
 function renderRecipes(filter = 'all') {
-    recipeList.innerHTML = '';
+    // If no filter is selected (on initial load), do nothing.
+    if (!filter) {
+        recipeList.classList.add('hidden');
+        return;
+    }
 
-    const filteredRecipes = (filter === 'all' || !filter)
+    recipeList.innerHTML = ''; // Clear the current list
+
+    // Filter the recipes based on the selected category
+    const filteredRecipes = (filter === 'all')
         ? allRecipes
         : allRecipes.filter(recipe => recipe.category === filter);
 
@@ -78,8 +85,10 @@ function renderRecipes(filter = 'all') {
             recipeList.appendChild(recipeEl);
         });
     }
+    // Make the recipe list visible
     recipeList.classList.remove('hidden');
 }
+
 
 async function handleFormSubmit(event) {
     event.preventDefault();
