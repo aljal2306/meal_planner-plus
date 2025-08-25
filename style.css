@@ -63,6 +63,10 @@ h1 {
     margin-bottom: 1.5rem;
 }
 
+h3 {
+    margin-top: 1.5rem;
+}
+
 label {
     display: block;
     font-weight: bold;
@@ -157,7 +161,7 @@ button.utility-btn:hover {
 
 /*
     -----------------------------------------------------
-    5. RECIPE LIST & GROCERY LIST
+    5. RECIPE LIST, MEAL PLANNER, & GROCERY LIST
     -----------------------------------------------------
 */
 #recipe-list div {
@@ -174,15 +178,33 @@ button.utility-btn:hover {
     gap: 10px;
 }
 
+.meal-day {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+.export-btn {
+    width: auto !important;
+    display: inline-block !important;
+    padding: 5px 10px !important;
+    font-size: 0.8rem !important;
+    margin-left: 10px;
+    background-color: #27ae60 !important;
+}
+.export-btn:hover {
+    background-color: #229954 !important;
+}
+
 #recipe-list h3 {
     margin-bottom: 0;
 }
 
-#grocery-list {
+#grocery-list, #final-grocery-list ul {
     list-style-type: none;
+    padding-left: 0;
 }
 
-#grocery-list li {
+#grocery-list li, #final-grocery-list li {
     display: flex;
     align-items: center;
     padding: 8px 0;
@@ -200,6 +222,12 @@ button.utility-btn:hover {
     text-decoration: line-through;
 }
 
+.grocery-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
 /*
     -----------------------------------------------------
     6. RESPONSIVE & PRINT
@@ -212,8 +240,4 @@ button.utility-btn:hover {
     .ingredient-row .remove-ingredient-btn {
         width: 100%;
     }
-}
-
-@media print {
-    /* Styles for the printable cookbook */
 }
