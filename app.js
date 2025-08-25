@@ -171,15 +171,24 @@ async function loadMealPlan() {
 
 async function addRecipeToMealPlan(date, recipeId) {
     if (!recipeId) {
-        await supabase.from('meal_plan').delete().eq('plan_date', date);
+        const { error } = await supabase.from('meal_plan').delete().eq('plan_date', date);
+        if (error) console.error('Error removing meal from plan:', error);
         return;
     }
-    await supabase.from('meal_plan').upsert({ plan_date: date, recipe_id: recipeId }, { onConflict: 'plan_date' });
+
+    const { error } = await supabase
+        .from('meal_plan')
+        .upsert({ plan_date: date, recipe_id: parseInt(recipeId) }, { onConflict: 'plan_date' });
+    
+    if (error) {
+        console.error('Error saving to meal plan:', error);
+        alert('Failed to save meal plan. See console for details.');
+    }
 }
 
 async function generateGroceryList() {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Fix: sets the time to midnight
+    today.setHours(0, 0, 0, 0);
 
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
