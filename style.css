@@ -230,18 +230,9 @@ button.utility-btn:hover {
 
 /*
     -----------------------------------------------------
-    6. RESPONSIVE & PRINT
+    6. CALENDAR MODAL
     -----------------------------------------------------
 */
-@media (max-width: 600px) {
-    .ingredient-row {
-        flex-wrap: wrap;
-    }
-    .ingredient-row .remove-ingredient-btn {
-        width: 100%;
-    }
-}
-/* Add these styles for the calendar modal */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -287,4 +278,18 @@ button.utility-btn:hover {
 
 .calendar-button.apple {
     background-color: #333333;
+}
+
+/*
+    -----------------------------------------------------
+    7. RESPONSIVE & PRINT
+    -----------------------------------------------------
+*/
+@media (max-width: 600px) {
+    .ingredient-row {
+        flex-wrap: wrap;
+    }
+    .ingredient-row .remove-ingredient-btn {
+        width: 100%;
+    }
 }
