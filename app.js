@@ -21,7 +21,6 @@ const cancelBtn = document.getElementById('cancel-btn');
 const finalizeListBtn = document.getElementById('finalize-list-btn');
 const shareListBtn = document.getElementById('share-list-btn');
 
-
 // -----------------------------------------------------------------------------
 // 2. RECIPE FUNCTIONS (CRUD)
 // -----------------------------------------------------------------------------
@@ -281,56 +280,16 @@ async function shareGroceryList() {
 // 5. COOKBOOK & CALENDAR FUNCTIONS
 // -----------------------------------------------------------------------------
 
-async function printCookbook() {
+function printCookbook() {
     const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
     const selectedIds = Array.from(checkedBoxes).map(box => box.value);
 
     if (selectedIds.length === 0) {
-        alert('Please select at least one recipe to include in your cookbook.');
+        alert('Please select at least one recipe to generate a cookbook.');
         return;
     }
-
-    const { data: recipes, error } = await supabase
-        .from('recipes')
-        .select('*')
-        .in('id', selectedIds)
-        .order('name');
-
-    if (error) { console.error('Error fetching selected recipes for cookbook:', error); return; }
-
-    let printHtml = `
-        <html>
-        <head>
-            <title>My Cookbook</title>
-            <style>
-                body { font-family: sans-serif; }
-                .recipe-print { page-break-after: always; padding: 20px; border-bottom: 1px solid #ccc; }
-                h1 { text-align: center; }
-                h2 { margin-top: 2rem; }
-                ul, ol { padding-left: 20px; }
-            </style>
-        </head>
-        <body>
-            <h1>My Cookbook</h1>
-    `;
-    recipes.forEach(r => {
-        printHtml += `
-            <div class="recipe-print">
-                <h2>${r.name}</h2>
-                <p><strong>Category:</strong> ${r.category || 'N/A'}</p>
-                <h3>Ingredients</h3>
-                <ul>${r.ingredients.map(i => `<li>${i.qty} ${i.unit || ''} ${i.name}</li>`).join('')}</ul>
-                <h3>Instructions</h3>
-                <ol>${r.instructions.map(s => `<li>${s}</li>`).join('')}</ol>
-            </div>
-        `;
-    });
-    printHtml += '</body></html>';
-
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(printHtml);
-    printWindow.document.close();
-    printWindow.print();
+    
+    window.location.href = `print.html?ids=${selectedIds.join(',')}`;
 }
 
 async function exportToCalendar(dateString) {
