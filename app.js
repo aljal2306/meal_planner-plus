@@ -150,7 +150,7 @@ async function renderMealPlanner() {
                 <option value="">Select a recipe...</option>
                 ${recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
             </select>
-            <button class="export-btn" onclick="exportToCalendar('${dateString}')">Export</button>
+            <button class="export-btn" onclick="exportToCalendar('${dateString}')">Add to Calendar</button>
         `;
         mealPlanner.appendChild(dayEl);
     }
@@ -345,25 +345,23 @@ async function exportToCalendar(dateString) {
     }
     
     const recipeName = meal.recipes.name;
-    const instructions = meal.recipes.instructions.join('\\n');
-    const icsDate = dateString.replace(/-/g, '');
+    const instructions = meal.recipes.instructions.join('\n');
+    
+    const startDate = new Date(dateString + 'T00:00:00');
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 1);
 
-    const icsContent = [
-        'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
-        `DTSTART;VALUE=DATE:${icsDate}`, `DTEND;VALUE=DATE:${icsDate}`,
-        `SUMMARY:Meal Plan: ${recipeName}`, `DESCRIPTION:${instructions}`,
-        'END:VEVENT', 'END:VCALENDAR'
-    ].join('\n');
+    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
+    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
 
-    const blob = new Blob([icsContent], { type: 'text/calendar' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${recipeName}.ics`;
-    document.body.appendChild(a);
-a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const baseUrl = 'https://www.google.com/calendar/render?action=TEMPLATE';
+    const eventTitle = encodeURIComponent(`Meal Plan: ${recipeName}`);
+    const eventDetails = encodeURIComponent(instructions);
+    const eventDates = `${formattedStartDate}/${formattedEndDate}`;
+
+    const calendarUrl = `${baseUrl}&text=${eventTitle}&details=${eventDetails}&dates=${eventDates}`;
+
+    window.open(calendarUrl, '_blank');
 }
 
 // -----------------------------------------------------------------------------
