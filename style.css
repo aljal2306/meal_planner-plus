@@ -11,7 +11,6 @@
     --border-color: #e0e6e9;
 }
 
-/* A simple CSS reset for consistent styling */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -39,6 +38,16 @@ body {
     margin-bottom: 2rem;
 }
 
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 1.5rem 0;
+}
+
+.hidden {
+    display: none;
+}
+
 /*
     -----------------------------------------------------
     2. TYPOGRAPHY
@@ -53,6 +62,14 @@ h1 {
     text-align: center;
     margin-bottom: 1.5rem;
 }
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
 
 /*
     -----------------------------------------------------
@@ -88,7 +105,14 @@ button:hover {
     background-color: #2980b9;
 }
 
-/* Style for buttons within the recipe list */
+button.utility-btn {
+    background-color: #7f8c8d;
+    margin-top: -0.5rem;
+}
+button.utility-btn:hover {
+    background-color: #6c7a7b;
+}
+
 #recipe-list button {
     display: inline-block;
     width: auto;
@@ -99,7 +123,41 @@ button:hover {
 
 /*
     -----------------------------------------------------
-    4. RECIPE LIST & CONTENT
+    4. DYNAMIC INGREDIENT INPUTS
+    -----------------------------------------------------
+*/
+.ingredient-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.ingredient-row input {
+    margin-bottom: 0;
+}
+.ingredient-row .ingredient-name {
+    flex-grow: 3;
+}
+.ingredient-row .ingredient-qty {
+    flex-grow: 1;
+}
+.ingredient-row .ingredient-unit {
+    flex-grow: 2;
+}
+.ingredient-row .remove-ingredient-btn {
+    width: auto;
+    padding: 8px 12px;
+    background-color: #e74c3c;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}
+.ingredient-row .remove-ingredient-btn:hover {
+    background-color: #c0392b;
+}
+
+/*
+    -----------------------------------------------------
+    5. RECIPE LIST & GROCERY LIST
     -----------------------------------------------------
 */
 #recipe-list div {
@@ -114,11 +172,6 @@ button:hover {
     margin-bottom: 0;
 }
 
-/*
-    -----------------------------------------------------
-    5. GROCERY LIST
-    -----------------------------------------------------
-*/
 #grocery-list {
     list-style-type: none;
 }
@@ -136,7 +189,6 @@ button:hover {
     height: 16px;
 }
 
-/* Add a style for "finalized" items */
 #grocery-list li:has(input:checked) {
     color: #95a5a6;
     text-decoration: line-through;
@@ -144,60 +196,18 @@ button:hover {
 
 /*
     -----------------------------------------------------
-    6. MOBILE & RESPONSIVE DESIGN
+    6. RESPONSIVE & PRINT
     -----------------------------------------------------
 */
-@media (min-width: 768px) {
-    body {
-        padding: 2rem;
+@media (max-width: 600px) {
+    .ingredient-row {
+        flex-wrap: wrap;
     }
-    #recipe-list button,
-    #recipe-list input,
-    #recipe-list textarea {
-        display: inline;
+    .ingredient-row .remove-ingredient-btn {
+        width: 100%;
     }
 }
 
-/*
-    -----------------------------------------------------
-    7. PRINT STYLES (for the Cookbook)
-    -----------------------------------------------------
-*/
 @media print {
-    body {
-        background-color: white;
-        font-size: 12pt;
-        color: black;
-    }
-
-    /* Hide elements that should not be in the printed version */
-    .section,
-    h1,
-    p,
-    button,
-    hr {
-        display: none;
-    }
-
-    /* Show only the content from the recipe list */
-    #recipe-list {
-        display: block !important;
-        box-shadow: none;
-        padding: 0;
-    }
-
-    .recipe-print {
-        page-break-after: always; /* Ensure each recipe starts on a new page */
-        padding: 0;
-        margin: 0;
-    }
-    
-    .recipe-print h2 {
-        text-align: center;
-        margin-top: 2rem;
-    }
-    
-    .recipe-print h3 {
-        margin-top: 1.5rem;
-    }
+    /* Styles for the printable cookbook */
 }
