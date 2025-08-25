@@ -18,6 +18,8 @@ const addIngredientBtn = document.getElementById('add-ingredient-btn');
 const showFormBtn = document.getElementById('show-form-btn');
 const addRecipeContainer = document.getElementById('add-recipe-container');
 const cancelBtn = document.getElementById('cancel-btn');
+const finalizeListBtn = document.getElementById('finalize-list-btn');
+const shareListBtn = document.getElementById('share-list-btn');
 
 // -----------------------------------------------------------------------------
 // 2. RECIPE FUNCTIONS (CRUD)
@@ -141,12 +143,14 @@ async function renderMealPlanner() {
         const dateString = date.toISOString().split('T')[0];
         
         const dayEl = document.createElement('div');
+        dayEl.className = 'meal-day';
         dayEl.innerHTML = `
             <h4>${date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</h4>
             <select id="meal-select-${dateString}" onchange="addRecipeToMealPlan('${dateString}', this.value)">
                 <option value="">Select a recipe...</option>
                 ${recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
             </select>
+            <button class="export-btn" onclick="exportToCalendar('${dateString}')">Export</button>
         `;
         mealPlanner.appendChild(dayEl);
     }
@@ -175,7 +179,6 @@ async function addRecipeToMealPlan(date, recipeId) {
         if (error) console.error('Error removing meal from plan:', error);
         return;
     }
-
     const { error } = await supabase
         .from('meal_plan')
         .upsert({ plan_date: date, recipe_id: parseInt(recipeId) }, { onConflict: 'plan_date' });
@@ -220,6 +223,58 @@ async function generateGroceryList() {
         groceryList.appendChild(li);
     });
 }
+
+function finalizeGroceryList() {
+    const finalList = document.getElementById('final-grocery-list');
+    finalList.innerHTML = '';
+
+    const checkedItems = document.querySelectorAll('#grocery-list input[type="checkbox"]:checked');
+    
+    if (checkedItems.length === 0) {
+        finalList.innerHTML = '<p>No items selected.</p>';
+        return;
+    }
+
+    const ul = document.createElement('ul');
+    checkedItems.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item.parentElement.textContent.trim();
+        ul.appendChild(li);
+    });
+    finalList.appendChild(ul);
+}
+
+async function shareGroceryList() {
+    const finalListContainer = document.getElementById('final-grocery-list');
+    const listItems = finalListContainer.querySelectorAll('li');
+
+    if (listItems.length === 0) {
+        alert('Please create a final list before sharing.');
+        return;
+    }
+
+    let shareText = 'My Grocery List:\n';
+    listItems.forEach(item => {
+        shareText += `- ${item.textContent}\n`;
+    });
+
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'Grocery List', text: shareText });
+        } catch (error) {
+            console.error('Error sharing:', error);
+        }
+    } else {
+        try {
+            await navigator.clipboard.writeText(shareText);
+            alert('Grocery list copied to clipboard!');
+        } catch (error) {
+            console.error('Error copying to clipboard:', error);
+            alert('Could not copy list to clipboard.');
+        }
+    }
+}
+
 
 // -----------------------------------------------------------------------------
 // 5. COOKBOOK & CALENDAR FUNCTIONS
@@ -277,6 +332,40 @@ async function printCookbook() {
     printWindow.print();
 }
 
+async function exportToCalendar(dateString) {
+    const { data: meal, error } = await supabase
+        .from('meal_plan')
+        .select('recipes(name, instructions)')
+        .eq('plan_date', dateString)
+        .single();
+    
+    if (error || !meal) {
+        alert('No meal planned for this day to export.');
+        return;
+    }
+    
+    const recipeName = meal.recipes.name;
+    const instructions = meal.recipes.instructions.join('\\n');
+    const icsDate = dateString.replace(/-/g, '');
+
+    const icsContent = [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
+        `DTSTART;VALUE=DATE:${icsDate}`, `DTEND;VALUE=DATE:${icsDate}`,
+        `SUMMARY:Meal Plan: ${recipeName}`, `DESCRIPTION:${instructions}`,
+        'END:VEVENT', 'END:VCALENDAR'
+    ].join('\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${recipeName}.ics`;
+    document.body.appendChild(a);
+a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 // -----------------------------------------------------------------------------
 // 6. EVENT LISTENERS & INITIALIZATION
 // -----------------------------------------------------------------------------
@@ -285,6 +374,8 @@ recipeForm.addEventListener('submit', handleFormSubmit);
 addIngredientBtn.addEventListener('click', () => addIngredientInput());
 generateListBtn.addEventListener('click', generateGroceryList);
 printCookbookBtn.addEventListener('click', printCookbook);
+finalizeListBtn.addEventListener('click', finalizeGroceryList);
+shareListBtn.addEventListener('click', shareGroceryList);
 
 showFormBtn.addEventListener('click', () => {
     addRecipeContainer.classList.remove('hidden');
