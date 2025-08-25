@@ -230,7 +230,30 @@ button.utility-btn:hover {
 
 /*
     -----------------------------------------------------
-    6. RESPONSIVE & PRINT
+    6. PRINT PREVIEW PAGE STYLES
+    -----------------------------------------------------
+*/
+.print-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.back-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+.back-button:hover {
+    background-color: #34495e;
+}
+
+/*
+    -----------------------------------------------------
+    7. RESPONSIVE & PRINT
     -----------------------------------------------------
 */
 @media (max-width: 600px) {
@@ -239,5 +262,14 @@ button.utility-btn:hover {
     }
     .ingredient-row .remove-ingredient-btn {
         width: 100%;
+    }
+}
+
+@media print {
+    .no-print {
+        display: none;
+    }
+    .recipe-print {
+        page-break-after: always;
     }
 }
