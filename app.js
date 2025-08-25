@@ -36,34 +36,28 @@ async function loadRecipes() {
     }
     allRecipes = data;
     populateCategoryFilter();
-    renderRecipes(categoryFilter.value); // Render based on the current filter
+    renderRecipes(categoryFilter.value);
 }
 
 function populateCategoryFilter() {
-    // Get unique categories from all recipes, excluding any null/empty categories
     const categories = ['all', ...new Set(allRecipes.map(recipe => recipe.category).filter(c => c))];
     
     const currentFilter = categoryFilter.value;
-    categoryFilter.innerHTML = ''; // Clear existing options
+    categoryFilter.innerHTML = '';
 
-    // Add the default "Select" option
     const defaultOption = document.createElement('option');
-    defaultOption.value = ""; // An empty value will signal to hide the list
+    defaultOption.value = "";
     defaultOption.textContent = "Select a category...";
-    // The "disabled" line is now removed
-    defaultOption.selected = true; // Makes it the default
+    defaultOption.selected = true;
     categoryFilter.appendChild(defaultOption);
 
-    // Add the rest of the categories
     categories.forEach(category => {
         const option = document.createElement('option');
         option.value = category;
-        // Capitalize the first letter for display
         option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
         categoryFilter.appendChild(option);
     });
-    
-    // If there was a filter selected before, try to restore it
+
     if (currentFilter) {
         categoryFilter.value = currentFilter;
     }
@@ -86,7 +80,6 @@ function renderRecipes(filter) {
     } else {
         filteredRecipes.forEach(recipe => {
             const recipeEl = document.createElement('div');
-            // The change is in the new div and button class below
             recipeEl.innerHTML = `
                 <div class="recipe-header">
                     <input type="checkbox" class="recipe-checkbox" value="${recipe.id}">
@@ -103,7 +96,6 @@ function renderRecipes(filter) {
     }
     recipeList.classList.remove('hidden');
 }
-
 
 async function handleFormSubmit(event) {
     event.preventDefault();
