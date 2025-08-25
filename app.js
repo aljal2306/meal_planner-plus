@@ -20,8 +20,7 @@ const addRecipeContainer = document.getElementById('add-recipe-container');
 const cancelBtn = document.getElementById('cancel-btn');
 const finalizeListBtn = document.getElementById('finalize-list-btn');
 const shareListBtn = document.getElementById('share-list-btn');
-const calendarModal = document.getElementById('calendar-modal');
-const closeModalBtn = document.getElementById('close-modal-btn');
+
 
 // -----------------------------------------------------------------------------
 // 2. RECIPE FUNCTIONS (CRUD)
@@ -152,7 +151,7 @@ async function renderMealPlanner() {
                 <option value="">Select a recipe...</option>
                 ${recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
             </select>
-            <button class="export-btn" onclick="openCalendarModal('${dateString}')">Add to Calendar</button>
+            <button class="export-btn" onclick="exportToCalendar('${dateString}')">Add to Calendar</button>
         `;
         mealPlanner.appendChild(dayEl);
     }
@@ -334,7 +333,7 @@ async function printCookbook() {
     printWindow.print();
 }
 
-async function openCalendarModal(dateString) {
+async function exportToCalendar(dateString) {
     const { data: meal, error } = await supabase
         .from('meal_plan')
         .select('recipes(name, instructions)')
@@ -347,23 +346,8 @@ async function openCalendarModal(dateString) {
     }
     
     const recipeName = meal.recipes.name;
-    const instructions = meal.recipes.instructions;
-
-    document.getElementById('modal-recipe-title').textContent = `Recipe: ${recipeName}`;
+    const instructions = meal.recipes.instructions.join('\n');
     
-    const googleLink = document.getElementById('google-calendar-link');
-    googleLink.href = generateGoogleCalendarLink(recipeName, instructions, dateString);
-
-    const icsButton = document.getElementById('ics-download-button');
-    icsButton.onclick = () => downloadIcsFile(recipeName, instructions, dateString);
-
-    calendarModal.classList.remove('hidden');
-}
-
-function generateGoogleCalendarLink(recipeName, instructions, dateString) {
-    const eventTitle = encodeURIComponent(`Meal Plan: ${recipeName}`);
-    const eventDetails = encodeURIComponent(instructions.join('\n'));
-
     const startDate = new Date(dateString + 'T00:00:00');
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 1);
@@ -372,35 +356,13 @@ function generateGoogleCalendarLink(recipeName, instructions, dateString) {
     const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
     const eventDates = `${formattedStartDate}/${formattedEndDate}`;
 
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${eventDetails}&dates=${eventDates}`;
-}
+    const baseUrl = 'https://www.google.com/calendar/render?action=TEMPLATE';
+    const eventTitle = encodeURIComponent(`Meal Plan: ${recipeName}`);
+    const eventDetails = encodeURIComponent(instructions);
+    
+    const calendarUrl = `${baseUrl}&text=${eventTitle}&details=${eventDetails}&dates=${eventDates}`;
 
-function downloadIcsFile(recipeName, instructions, dateString) {
-    const startDate = new Date(dateString + 'T00:00:00');
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 1);
-
-    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
-    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
-
-    const icsContent = [
-        'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
-        `DTSTART;VALUE=DATE:${formattedStartDate}`,
-        `DTEND;VALUE=DATE:${formattedEndDate}`,
-        `SUMMARY:Meal Plan: ${recipeName}`,
-        `DESCRIPTION:${instructions.join('\\n')}`,
-        'END:VEVENT', 'END:VCALENDAR'
-    ].join('\n');
-
-    const blob = new Blob([icsContent], { type: 'text/calendar' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${recipeName}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    window.open(calendarUrl, '_blank');
 }
 
 // -----------------------------------------------------------------------------
@@ -425,16 +387,6 @@ cancelBtn.addEventListener('click', () => {
     recipeForm.reset();
     ingredientInputs.innerHTML = '<label>Ingredients</label>';
     addIngredientInput();
-});
-
-closeModalBtn.addEventListener('click', () => {
-    calendarModal.classList.add('hidden');
-});
-
-calendarModal.addEventListener('click', (event) => {
-    if (event.target === calendarModal) {
-        calendarModal.classList.add('hidden');
-    }
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
