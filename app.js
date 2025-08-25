@@ -40,25 +40,30 @@ async function loadRecipes() {
 }
 
 function populateCategoryFilter() {
+    // Get unique categories from all recipes, excluding any null/empty categories
     const categories = ['all', ...new Set(allRecipes.map(recipe => recipe.category).filter(c => c))];
     
     const currentFilter = categoryFilter.value;
-    categoryFilter.innerHTML = '';
+    categoryFilter.innerHTML = ''; // Clear existing options
 
+    // Add the default "Select" option
     const defaultOption = document.createElement('option');
     defaultOption.value = ""; // An empty value will signal to hide the list
     defaultOption.textContent = "Select a category...";
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
+    // The "disabled" line is now removed
+    defaultOption.selected = true; // Makes it the default
     categoryFilter.appendChild(defaultOption);
 
+    // Add the rest of the categories
     categories.forEach(category => {
         const option = document.createElement('option');
         option.value = category;
+        // Capitalize the first letter for display
         option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
         categoryFilter.appendChild(option);
     });
-
+    
+    // If there was a filter selected before, try to restore it
     if (currentFilter) {
         categoryFilter.value = currentFilter;
     }
