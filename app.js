@@ -86,20 +86,24 @@ function renderRecipes(filter) {
     } else {
         filteredRecipes.forEach(recipe => {
             const recipeEl = document.createElement('div');
+            // The change is in the new div and button class below
             recipeEl.innerHTML = `
                 <div class="recipe-header">
                     <input type="checkbox" class="recipe-checkbox" value="${recipe.id}">
                     <h3>${recipe.name}</h3>
                 </div>
                 <p>Category: ${recipe.category}</p>
-                <button onclick="populateFormForEdit(${recipe.id})">Edit</button>
-                <button onclick="deleteRecipe(${recipe.id})">Delete</button>
+                <div class="recipe-actions">
+                    <button onclick="populateFormForEdit(${recipe.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteRecipe(${recipe.id})">Delete</button>
+                </div>
             `;
             recipeList.appendChild(recipeEl);
         });
     }
     recipeList.classList.remove('hidden');
 }
+
 
 async function handleFormSubmit(event) {
     event.preventDefault();
