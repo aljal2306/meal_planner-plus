@@ -376,10 +376,17 @@ function generateGoogleCalendarLink(recipeName, instructions, dateString) {
 }
 
 function downloadIcsFile(recipeName, instructions, dateString) {
+    const startDate = new Date(dateString + 'T00:00:00');
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 1);
+
+    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
+    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
+
     const icsContent = [
         'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
-        `DTSTART;VALUE=DATE:${dateString.replace(/-/g, '')}`,
-        `DTEND;VALUE=DATE:${dateString.replace(/-/g, '')}`,
+        `DTSTART;VALUE=DATE:${formattedStartDate}`,
+        `DTEND;VALUE=DATE:${formattedEndDate}`,
         `SUMMARY:Meal Plan: ${recipeName}`,
         `DESCRIPTION:${instructions.join('\\n')}`,
         'END:VEVENT', 'END:VCALENDAR'
