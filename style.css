@@ -275,3 +275,20 @@ button.utility-btn:hover {
         page-break-after: always;
     }
 }
+
+/* Add this for the button container */
+.recipe-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+/* Add this to specifically style the delete button */
+#recipe-list .delete-btn {
+    background-color: #e74c3c; /* Red */
+}
+
+#recipe-list .delete-btn:hover {
+    background-color: #c0392b; /* Darker Red */
+}
