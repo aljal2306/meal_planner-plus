@@ -20,29 +20,65 @@ const addRecipeContainer = document.getElementById('add-recipe-container');
 const cancelBtn = document.getElementById('cancel-btn');
 const finalizeListBtn = document.getElementById('finalize-list-btn');
 const shareListBtn = document.getElementById('share-list-btn');
+const categoryFilter = document.getElementById('category-filter');
+
+let allRecipes = [];
 
 // -----------------------------------------------------------------------------
 // 2. RECIPE FUNCTIONS (CRUD)
 // -----------------------------------------------------------------------------
 
 async function loadRecipes() {
-    const { data: recipes, error } = await supabase.from('recipes').select('*').order('created_at', { ascending: false });
-    if (error) { console.error('Error fetching recipes:', error); return; }
+    const { data, error } = await supabase.from('recipes').select('*').order('name', { ascending: true });
+    if (error) {
+        console.error('Error fetching recipes:', error);
+        return;
+    }
+    allRecipes = data;
+    populateCategoryFilter();
+    renderRecipes(categoryFilter.value);
+}
 
-    recipeList.innerHTML = '';
-    recipes.forEach(recipe => {
-        const recipeEl = document.createElement('div');
-        recipeEl.innerHTML = `
-            <div class="recipe-header">
-                <input type="checkbox" class="recipe-checkbox" value="${recipe.id}">
-                <h3>${recipe.name}</h3>
-            </div>
-            <p>Category: ${recipe.category}</p>
-            <button onclick="populateFormForEdit(${recipe.id})">Edit</button>
-            <button onclick="deleteRecipe(${recipe.id})">Delete</button>
-        `;
-        recipeList.appendChild(recipeEl);
+function populateCategoryFilter() {
+    const categories = ['all', ...new Set(allRecipes.map(recipe => recipe.category).filter(c => c))];
+    
+    const currentFilter = categoryFilter.value;
+    categoryFilter.innerHTML = '';
+
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+        categoryFilter.appendChild(option);
     });
+    categoryFilter.value = currentFilter;
+}
+
+function renderRecipes(filter = 'all') {
+    recipeList.innerHTML = '';
+
+    const filteredRecipes = (filter === 'all' || !filter)
+        ? allRecipes
+        : allRecipes.filter(recipe => recipe.category === filter);
+
+    if (filteredRecipes.length === 0) {
+        recipeList.innerHTML = '<p>No recipes found in this category.</p>';
+    } else {
+        filteredRecipes.forEach(recipe => {
+            const recipeEl = document.createElement('div');
+            recipeEl.innerHTML = `
+                <div class="recipe-header">
+                    <input type="checkbox" class="recipe-checkbox" value="${recipe.id}">
+                    <h3>${recipe.name}</h3>
+                </div>
+                <p>Category: ${recipe.category}</p>
+                <button onclick="populateFormForEdit(${recipe.id})">Edit</button>
+                <button onclick="deleteRecipe(${recipe.id})">Delete</button>
+            `;
+            recipeList.appendChild(recipeEl);
+        });
+    }
+    recipeList.classList.remove('hidden');
 }
 
 async function handleFormSubmit(event) {
@@ -334,6 +370,8 @@ generateListBtn.addEventListener('click', generateGroceryList);
 printCookbookBtn.addEventListener('click', printCookbook);
 finalizeListBtn.addEventListener('click', finalizeGroceryList);
 shareListBtn.addEventListener('click', shareGroceryList);
+categoryFilter.addEventListener('change', () => renderRecipes(categoryFilter.value));
+
 
 showFormBtn.addEventListener('click', () => {
     addRecipeContainer.classList.remove('hidden');
