@@ -168,6 +168,12 @@ button.utility-btn:hover {
     background-color: #fafbfc;
 }
 
+.recipe-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 #recipe-list h3 {
     margin-bottom: 0;
 }
