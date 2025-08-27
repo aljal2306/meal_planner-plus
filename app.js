@@ -77,29 +77,65 @@ function renderRecipes(filter) {
 
 async function handleFormSubmit(event) {
     event.preventDefault();
+
     const recipeId = document.getElementById('recipe-id').value;
     const name = document.getElementById('recipe-name').value;
     const category = document.getElementById('recipe-category').value;
     const instructionsText = document.getElementById('recipe-instructions').value;
+
     const ingredients = [];
     document.querySelectorAll('.ingredient-row').forEach(row => {
         const ingredientName = row.querySelector('.ingredient-name').value;
         const quantity = row.querySelector('.ingredient-qty').value;
         const unit = row.querySelector('.ingredient-unit').value;
-        if (ingredientName && quantity) { ingredients.push({ name: ingredientName, qty: quantity, unit: unit }); }
+        if (ingredientName && quantity) {
+            ingredients.push({ name: ingredientName, qty: quantity, unit: unit });
+        }
     });
-    if (!name || ingredients.length === 0 || !instructionsText) { alert('Please fill out all required fields.'); return; }
+
     const instructions = instructionsText.split('\n').filter(line => line.trim() !== '');
-    const recipeData = { name, category, ingredients, instructions };
-    const { error } = recipeId ? await supabase.from('recipes').update(recipeData).eq('id', recipeId) : await supabase.from('recipes').insert([recipeData]);
-    if (error) { alert(`Failed to save recipe: ${error.message}`); return; }
-    recipeForm.reset();
-    ingredientInputs.innerHTML = '<label>Ingredients</label>';
-    addIngredientInput();
-    addRecipeContainer.classList.add('hidden');
-    showFormBtn.classList.remove('hidden');
-    await loadRecipes();
-    await renderMealPlanner();
+
+    // This object will hold only the data we want to save
+    const recipeData = {};
+
+    // Only add data to the object if the corresponding field isn't empty
+    if (name) recipeData.name = name;
+    if (category) recipeData.category = category;
+    if (ingredients.length > 0) recipeData.ingredients = ingredients;
+    if (instructions.length > 0) recipeData.instructions = instructions;
+
+
+    try {
+        let response;
+        if (recipeId) {
+            // --- UPDATE LOGIC ---
+            // If we are editing, only update the fields that have data.
+            response = await supabase.from('recipes').update(recipeData).eq('id', recipeId);
+        } else {
+            // --- CREATE LOGIC ---
+            // For a new recipe, make sure the essential fields exist.
+            if (!recipeData.name || !recipeData.ingredients || !recipeData.instructions) {
+                alert('Please fill out the recipe name, at least one ingredient, and instructions for a new recipe.');
+                return;
+            }
+            response = await supabase.from('recipes').insert([recipeData]);
+        }
+
+        if (response.error) throw response.error;
+
+        // Reset the form and reload the data
+        recipeForm.reset();
+        ingredientInputs.innerHTML = '<label>Ingredients</label>';
+        addIngredientInput();
+        addRecipeContainer.classList.add('hidden');
+        showFormBtn.classList.remove('hidden');
+        await loadRecipes();
+        await renderMealPlanner();
+
+    } catch (error) {
+        console.error('Error saving recipe:', error.message);
+        alert(`Failed to save recipe: ${error.message}`);
+    }
 }
 
 async function populateFormForEdit(id) {
