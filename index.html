@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe & Meal Planner</title>
-    
     <link rel="stylesheet" href="style.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -44,9 +42,7 @@
                     <input type="search" id="search-input" placeholder="Search recipes...">
                 </div>
             </div>
-            
             <div id="recipe-list" class="hidden"></div>
-            
             <button id="print-cookbook-btn">Generate Printable Cookbook</button>
         </div>
         
@@ -76,6 +72,7 @@
             <p id="view-category"></p>
             <hr>
             <h3>Ingredients</h3>
+            <div id="scaling-controls"></div>
             <ul id="view-ingredients"></ul>
             <h3>Instructions</h3>
             <ol id="view-instructions"></ol>
