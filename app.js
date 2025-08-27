@@ -17,8 +17,6 @@ const cancelBtn = document.getElementById('cancel-btn');
 const finalizeListBtn = document.getElementById('finalize-list-btn');
 const shareListBtn = document.getElementById('share-list-btn');
 const categoryFilter = document.getElementById('category-filter');
-const calendarModal = document.getElementById('calendar-modal');
-const closeModalBtn = document.getElementById('close-modal-btn');
 const viewRecipeModal = document.getElementById('view-recipe-modal');
 const closeViewModalBtn = document.getElementById('close-view-modal-btn');
 const viewTitle = document.getElementById('view-title');
@@ -28,52 +26,15 @@ const viewInstructions = document.getElementById('view-instructions');
 
 let allRecipes = [];
 
-// RECIPE FUNCTIONS (CRUD)
+// -----------------------------------------------------------------------------
+// 2. RECIPE FUNCTIONS (CRUD)
+// -----------------------------------------------------------------------------
 async function loadRecipes() {
     const { data, error } = await supabase.from('recipes').select('*').order('name', { ascending: true });
     if (error) { console.error('Error fetching recipes:', error); return; }
     allRecipes = data;
     populateCategoryFilter();
     renderRecipes(categoryFilter.value);
-}
-
-async function viewRecipe(id) {
-    // Fetch the specific recipe by its ID
-    const { data: recipe, error } = await supabase
-        .from('recipes')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-    if (error) {
-        console.error('Error fetching recipe for viewing:', error);
-        return;
-    }
-
-    // Populate the modal with the recipe's data
-  // ...
-const viewTitle = document.getElementById('view-title');
-const viewCategory = document.getElementById('view-category');
-// ...
-    
-    // Clear previous list items
-    viewIngredients.innerHTML = '';
-    viewInstructions.innerHTML = '';
-
-    recipe.ingredients.forEach(ing => {
-        const li = document.createElement('li');
-        li.textContent = `${ing.qty} ${ing.unit || ''} ${ing.name}`.trim();
-        viewIngredients.appendChild(li);
-    });
-
-    recipe.instructions.forEach(step => {
-        const li = document.createElement('li');
-        li.textContent = step;
-        viewInstructions.appendChild(li);
-    });
-
-    // Show the modal
-    viewRecipeModal.classList.remove('hidden');
 }
 
 function populateCategoryFilter() {
@@ -95,17 +56,9 @@ function populateCategoryFilter() {
 }
 
 function renderRecipes(filter) {
-    if (!filter) {
-        recipeList.classList.add('hidden');
-        return;
-    }
-
+    if (!filter) { recipeList.classList.add('hidden'); return; }
     recipeList.innerHTML = '';
-
-    const filteredRecipes = (filter === 'all')
-        ? allRecipes
-        : allRecipes.filter(recipe => recipe.category === filter);
-
+    const filteredRecipes = (filter === 'all') ? allRecipes : allRecipes.filter(recipe => recipe.category === filter);
     if (filteredRecipes.length === 0) {
         recipeList.innerHTML = '<p>No recipes found in this category.</p>';
     } else {
@@ -129,67 +82,51 @@ function renderRecipes(filter) {
     recipeList.classList.remove('hidden');
 }
 
+async function viewRecipe(id) {
+    const { data: recipe, error } = await supabase.from('recipes').select('*').eq('id', id).single();
+    if (error) { console.error('Error fetching recipe for viewing:', error); return; }
+    viewTitle.textContent = recipe.name;
+    viewCategory.textContent = `Category: ${recipe.category || 'N/A'}`;
+    viewIngredients.innerHTML = '';
+    viewInstructions.innerHTML = '';
+    recipe.ingredients.forEach(ing => {
+        const li = document.createElement('li');
+        li.textContent = `${ing.qty} ${ing.unit || ''} ${ing.name}`.trim();
+        viewIngredients.appendChild(li);
+    });
+    recipe.instructions.forEach(step => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        viewInstructions.appendChild(li);
+    });
+    viewRecipeModal.classList.remove('hidden');
+}
+
 async function handleFormSubmit(event) {
     event.preventDefault();
-
     const recipeId = document.getElementById('recipe-id').value;
     const name = document.getElementById('recipe-name').value;
     const category = document.getElementById('recipe-category').value;
     const instructionsText = document.getElementById('recipe-instructions').value;
-
     const ingredients = [];
     document.querySelectorAll('.ingredient-row').forEach(row => {
         const ingredientName = row.querySelector('.ingredient-name').value;
         const quantity = row.querySelector('.ingredient-qty').value;
         const unit = row.querySelector('.ingredient-unit').value;
-        if (ingredientName && quantity) {
-            ingredients.push({ name: ingredientName, qty: quantity, unit: unit });
-        }
+        if (ingredientName && quantity) { ingredients.push({ name: ingredientName, qty: quantity, unit: unit }); }
     });
-
+    if (!name || ingredients.length === 0 || !instructionsText) { alert('Please fill out all required fields.'); return; }
     const instructions = instructionsText.split('\n').filter(line => line.trim() !== '');
-
-    // This object will hold only the data we want to save
-    const recipeData = {};
-
-    // Only add data to the object if the corresponding field isn't empty
-    if (name) recipeData.name = name;
-    if (category) recipeData.category = category;
-    if (ingredients.length > 0) recipeData.ingredients = ingredients;
-    if (instructions.length > 0) recipeData.instructions = instructions;
-
-
-    try {
-        let response;
-        if (recipeId) {
-            // --- UPDATE LOGIC ---
-            // If we are editing, only update the fields that have data.
-            response = await supabase.from('recipes').update(recipeData).eq('id', recipeId);
-        } else {
-            // --- CREATE LOGIC ---
-            // For a new recipe, make sure the essential fields exist.
-            if (!recipeData.name || !recipeData.ingredients || !recipeData.instructions) {
-                alert('Please fill out the recipe name, at least one ingredient, and instructions for a new recipe.');
-                return;
-            }
-            response = await supabase.from('recipes').insert([recipeData]);
-        }
-
-        if (response.error) throw response.error;
-
-        // Reset the form and reload the data
-        recipeForm.reset();
-        ingredientInputs.innerHTML = '<label>Ingredients</label>';
-        addIngredientInput();
-        addRecipeContainer.classList.add('hidden');
-        showFormBtn.classList.remove('hidden');
-        await loadRecipes();
-        await renderMealPlanner();
-
-    } catch (error) {
-        console.error('Error saving recipe:', error.message);
-        alert(`Failed to save recipe: ${error.message}`);
-    }
+    const recipeData = { name, category, ingredients, instructions };
+    const { error } = recipeId ? await supabase.from('recipes').update(recipeData).eq('id', recipeId) : await supabase.from('recipes').insert([recipeData]);
+    if (error) { alert(`Failed to save recipe: ${error.message}`); return; }
+    recipeForm.reset();
+    ingredientInputs.innerHTML = '<label>Ingredients</label>';
+    addIngredientInput();
+    addRecipeContainer.classList.add('hidden');
+    showFormBtn.classList.remove('hidden');
+    await loadRecipes();
+    await renderMealPlanner();
 }
 
 async function populateFormForEdit(id) {
@@ -245,7 +182,7 @@ async function renderMealPlanner() {
                 <option value="">Select a recipe...</option>
                 ${recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
             </select>
-            <button class="export-btn" onclick="openCalendarModal('${dateString}')">Add to Calendar</button>
+            <button class="export-btn" onclick="exportToCalendar('${dateString}')">Add to Calendar</button>
         `;
         mealPlanner.appendChild(dayEl);
     }
@@ -334,44 +271,21 @@ function printCookbook() {
     window.location.href = `print.html?ids=${selectedIds.join(',')}`;
 }
 
-async function openCalendarModal(dateString) {
+async function exportToCalendar(dateString) {
     const { data: meal, error } = await supabase.from('meal_plan').select('recipes(name, instructions)').eq('plan_date', dateString).single();
     if (error || !meal) { alert('No meal planned for this day.'); return; }
     const { name: recipeName, instructions } = meal.recipes;
-    document.getElementById('modal-recipe-title').textContent = `Recipe: ${recipeName}`;
-    document.getElementById('google-calendar-link').href = generateGoogleCalendarLink(recipeName, instructions, dateString);
-    document.getElementById('ics-download-button').onclick = () => downloadIcsFile(recipeName, instructions, dateString);
-    calendarModal.classList.remove('hidden');
-}
-
-function generateGoogleCalendarLink(recipeName, instructions, dateString) {
-    const eventTitle = encodeURIComponent(`Meal Plan: ${recipeName}`);
-    const eventDetails = encodeURIComponent(instructions.join('\n'));
+    const eventDetails = instructions.join('\n');
     const startDate = new Date(dateString + 'T00:00:00');
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 1);
     const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
     const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
     const eventDates = `${formattedStartDate}/${formattedEndDate}`;
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${eventDetails}&dates=${eventDates}`;
-}
-
-function downloadIcsFile(recipeName, instructions, dateString) {
-    const startDate = new Date(dateString + 'T00:00:00');
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 1);
-    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
-    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
-    const icsContent = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT', `DTSTART;VALUE=DATE:${formattedStartDate}`, `DTEND;VALUE=DATE:${formattedEndDate}`, `SUMMARY:Meal Plan: ${recipeName}`, `DESCRIPTION:${instructions.join('\\n')}`, 'END:VEVENT', 'END:VCALENDAR'].join('\n');
-    const blob = new Blob([icsContent], { type: 'text/calendar' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${recipeName}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const baseUrl = 'https://www.google.com/calendar/render?action=TEMPLATE';
+    const eventTitle = encodeURIComponent(`Meal Plan: ${recipeName}`);
+    const calendarUrl = `${baseUrl}&text=${eventTitle}&details=${encodeURIComponent(eventDetails)}&dates=${eventDates}`;
+    window.open(calendarUrl, '_blank');
 }
 
 // EVENT LISTENERS & INITIALIZATION
@@ -384,27 +298,81 @@ shareListBtn.addEventListener('click', shareGroceryList);
 categoryFilter.addEventListener('change', () => renderRecipes(categoryFilter.value));
 showFormBtn.addEventListener('click', () => { addRecipeContainer.classList.remove('hidden'); showFormBtn.classList.add('hidden'); });
 cancelBtn.addEventListener('click', () => { addRecipeContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); recipeForm.reset(); ingredientInputs.innerHTML = '<label>Ingredients</label>'; addIngredientInput(); });
-closeModalBtn.addEventListener('click', () => { calendarModal.classList.add('hidden'); });
-calendarModal.addEventListener('click', (event) => { if (event.target === calendarModal) { calendarModal.classList.add('hidden'); } });
+closeViewModalBtn.addEventListener('click', () => { viewRecipeModal.classList.add('hidden'); });
+viewRecipeModal.addEventListener('click', (event) => { if (event.target === viewRecipeModal) { viewRecipeModal.classList.add('hidden'); } });
 document.addEventListener('DOMContentLoaded', async () => { addRecipeContainer.classList.add('hidden'); addIngredientInput(); await loadRecipes(); await renderMealPlanner(); });
-closeViewModalBtn.addEventListener('click', () => {
-    viewRecipeModal.classList.add('hidden');
-});
+Don't Forget Your New Files!
+For the print preview feature to work, make sure you have also created print.html and print.js in your project folder.
 
-viewRecipeModal.addEventListener('click', (event) => {
-    if (event.target === viewRecipeModal) {
-        viewRecipeModal.classList.add('hidden');
+print.html
+HTML
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Cookbook</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="print-header no-print">
+            <h1>Print Preview</h1>
+            <p>Use your browser's "Share → Print" or "Save as PDF" feature now.</p>
+            <a href="index.html" class="back-button">← Back to App</a>
+            <hr>
+        </div>
+        <div id="cookbook-content"></div>
+    </div>
+    <script src="print.js"></script>
+</body>
+</html>
+print.js
+Remember to add your Supabase credentials to this file.
+
+JavaScript
+
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const cookbookContent = document.getElementById('cookbook-content');
+
+async function loadSelectedRecipes() {
+    const params = new URLSearchParams(window.location.search);
+    const ids = params.get('ids');
+    if (!ids) {
+        cookbookContent.innerHTML = '<h2>No recipes selected.</h2><p><a href="index.html">Go back</a> to select recipes.</p>';
+        return;
     }
-});
+    const selectedIds = ids.split(',');
+    const { data: recipes, error } = await supabase.from('recipes').select('*').in('id', selectedIds).order('name');
+    if (error) {
+        console.error('Error fetching selected recipes:', error);
+        cookbookContent.innerHTML = '<h2>Could not load recipes.</h2>';
+        return;
+    }
+    let html = '<h1>My Cookbook</h1>';
+    recipes.forEach(r => {
+        html += `
+            <div class="recipe-print">
+                <h2>${r.name}</h2>
+                <p><strong>Category:</strong> ${r.category || 'N/A'}</p>
+                <h3>Ingredients</h3>
+                <ul>${r.ingredients.map(i => `<li>${i.qty} ${i.unit || ''} ${i.name}</li>`).join('')}</ul>
+                <h3>Instructions</h3>
+                <ol>${r.instructions.map(s => `<li>${s}</li>`).join('')}</ol>
+            </div>
+        `;
+    });
+    cookbookContent.innerHTML = html;
+}
+document.addEventListener('DOMContentLoaded', loadSelectedRecipes);
 
 
 
 
 
-
-
-
-
-
-Tools
 
