@@ -155,32 +155,25 @@ async function handleFormSubmit(event) {
     const name = document.getElementById('recipe-name').value;
     const category = document.getElementById('recipe-category').value;
     const instructionsText = document.getElementById('recipe-instructions').value;
-
     const ingredients = [];
     document.querySelectorAll('.ingredient-row').forEach(row => {
         const ingredientName = row.querySelector('.ingredient-name').value;
         const quantity = row.querySelector('.ingredient-qty').value;
         const unit = row.querySelector('.ingredient-unit').value;
-        if (ingredientName && quantity) {
+        if (ingredientName.trim()) {
             ingredients.push({ name: ingredientName, qty: quantity, unit: unit });
         }
     });
-
-    // This is the updated, more flexible validation
     if (!name) {
         alert('A recipe name is required.');
         return;
     }
-
     const instructions = instructionsText.split('\n').filter(line => line.trim() !== '');
     const recipeData = { name, category, ingredients, instructions };
-
     const { error } = recipeId
         ? await supabase.from('recipes').update(recipeData).eq('id', recipeId)
         : await supabase.from('recipes').insert([recipeData]);
-
     if (error) { alert(`Failed to save recipe: ${error.message}`); return; }
-
     recipeForm.reset();
     ingredientInputs.innerHTML = '<label>Ingredients</label>';
     addIngredientInput();
@@ -212,20 +205,24 @@ async function deleteRecipe(id) {
     }
 }
 
-// DYNAMIC INGREDIENT INPUTS
+// -----------------------------------------------------------------------------
+// 3. DYNAMIC INGREDIENT INPUTS
+// -----------------------------------------------------------------------------
 function addIngredientInput(ingredient = {}) {
     const div = document.createElement('div');
     div.className = 'ingredient-row';
     div.innerHTML = `
-        <input type="text" class="ingredient-name" placeholder="Ingredient Name" value="${ingredient.name || ''}" required>
-        <input type="number" step="0.01" class="ingredient-qty" placeholder="Qty" value="${ingredient.qty || ''}" required>
+        <input type="text" class="ingredient-name" placeholder="Ingredient Name" value="${ingredient.name || ''}">
+        <input type="number" step="0.01" class="ingredient-qty" placeholder="Qty" value="${ingredient.qty || ''}">
         <input type="text" class="ingredient-unit" placeholder="Unit (e.g., cup)" value="${ingredient.unit || ''}">
         <button type="button" class="remove-ingredient-btn" onclick="this.parentElement.remove()">Remove</button>
     `;
     ingredientInputs.appendChild(div);
 }
 
-// MEAL PLANNER & GROCERY LIST
+// -----------------------------------------------------------------------------
+// 4. MEAL PLANNER & GROCERY LIST
+// -----------------------------------------------------------------------------
 async function renderMealPlanner() {
     const { data: recipes, error } = await supabase.from('recipes').select('id, name');
     if (error) { console.error('Error fetching recipes for planner:', error); return; }
@@ -324,7 +321,9 @@ async function shareGroceryList() {
     }
 }
 
-// COOKBOOK & CALENDAR FUNCTIONS
+// -----------------------------------------------------------------------------
+// 5. COOKBOOK & CALENDAR FUNCTIONS
+// -----------------------------------------------------------------------------
 function printCookbook() {
     const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
     const selectedIds = Array.from(checkedBoxes).map(box => box.value);
@@ -349,7 +348,9 @@ async function exportToCalendar(dateString) {
     window.open(calendarUrl, '_blank');
 }
 
-// EVENT LISTENERS & INITIALIZATION
+// -----------------------------------------------------------------------------
+// 6. EVENT LISTENERS & INITIALIZATION
+// -----------------------------------------------------------------------------
 recipeForm.addEventListener('submit', handleFormSubmit);
 addIngredientBtn.addEventListener('click', () => addIngredientInput());
 generateListBtn.addEventListener('click', generateGroceryList);
