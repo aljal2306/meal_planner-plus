@@ -68,7 +68,7 @@ function populateAuthorFilter() {
     authorFilter.innerHTML = '';
     const defaultOption = document.createElement('option');
     defaultOption.value = "";
-    defaultOption.textContent = "Select an author...";
+    defaultOption.textContent = "Select a Chef...";
     defaultOption.selected = true;
     authorFilter.appendChild(defaultOption);
     authors.forEach(author => {
@@ -85,7 +85,6 @@ function renderRecipes() {
     const authorValue = authorFilter.value;
     const searchTerm = searchInput.value.toLowerCase();
     
-    // Hide the list if no filters are selected
     if (!categoryValue && !authorValue && !searchTerm) {
         recipeList.classList.add('hidden');
         return;
@@ -115,7 +114,7 @@ function renderRecipes() {
                     <h3>${recipe.name}</h3>
                 </div>
                 <p><strong>Category:</strong> ${recipe.category || 'N/A'}</p>
-                <p><strong>Author:</strong> ${recipe.author || 'N/A'}</p>
+                <p><strong>Chef:</strong> ${recipe.author || 'N/A'}</p>
                 <div class="recipe-actions">
                     <button class="view-btn" onclick="viewRecipe(${recipe.id})">View</button>
                     <button onclick="populateFormForEdit(${recipe.id})">Edit</button>
@@ -134,7 +133,7 @@ async function viewRecipe(id) {
     currentRecipeInView = recipe;
     viewTitle.textContent = recipe.name;
     viewCategory.textContent = `Category: ${recipe.category || 'N/A'}`;
-    viewAuthor.textContent = `By: ${recipe.author || 'N/A'}`;
+    viewAuthor.textContent = `Chef: ${recipe.author || 'N/A'}`;
     viewInstructions.innerHTML = '';
     recipe.instructions.forEach(step => {
         const li = document.createElement('li');
@@ -243,9 +242,9 @@ async function deleteRecipe(id) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// 3. DYNAMIC INGREDIENT INPUTS
-// -----------------------------------------------------------------------------
+// ... (The rest of the file is unchanged, but included for completeness) ...
+
+// DYNAMIC INGREDIENT INPUTS
 function addIngredientInput(ingredient = {}) {
     const div = document.createElement('div');
     div.className = 'ingredient-row';
@@ -258,9 +257,7 @@ function addIngredientInput(ingredient = {}) {
     ingredientInputs.appendChild(div);
 }
 
-// -----------------------------------------------------------------------------
-// 4. MEAL PLANNER & GROCERY LIST
-// -----------------------------------------------------------------------------
+// MEAL PLANNER & GROCERY LIST
 async function renderMealPlanner() {
     const { data: recipes, error } = await supabase.from('recipes').select('id, name');
     if (error) { console.error('Error fetching recipes for planner:', error); return; }
@@ -359,9 +356,7 @@ async function shareGroceryList() {
     }
 }
 
-// -----------------------------------------------------------------------------
-// 5. COOKBOOK & CALENDAR FUNCTIONS
-// -----------------------------------------------------------------------------
+// COOKBOOK & CALENDAR FUNCTIONS
 function printCookbook() {
     const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
     const selectedIds = Array.from(checkedBoxes).map(box => box.value);
@@ -386,9 +381,7 @@ async function exportToCalendar(dateString) {
     window.open(calendarUrl, '_blank');
 }
 
-// -----------------------------------------------------------------------------
-// 6. RECIPE IMPORT & PARSING
-// -----------------------------------------------------------------------------
+// RECIPE IMPORT & PARSING
 function parseRecipeText() {
     const text = recipeImportText.value;
     if (!text.trim()) { alert('Please paste recipe text into the box.'); return; }
@@ -431,9 +424,7 @@ function parseIngredientLine(line) {
     return { name, qty, unit };
 }
 
-// -----------------------------------------------------------------------------
-// 7. EVENT LISTENERS & INITIALIZATION
-// -----------------------------------------------------------------------------
+// EVENT LISTENERS & INITIALIZATION
 recipeForm.addEventListener('submit', handleFormSubmit);
 addIngredientBtn.addEventListener('click', () => addIngredientInput());
 generateListBtn.addEventListener('click', generateGroceryList);
