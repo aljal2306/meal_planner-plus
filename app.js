@@ -51,8 +51,10 @@ async function viewRecipe(id) {
     }
 
     // Populate the modal with the recipe's data
-    viewTitle.textContent = recipe.name;
-    viewCategory.textContent = `Category: ${recipe.category || 'N/A'}`;
+  // ...
+const viewTitle = document.getElementById('view-title');
+const viewCategory = document.getElementById('view-category');
+// ...
     
     // Clear previous list items
     viewIngredients.innerHTML = '';
