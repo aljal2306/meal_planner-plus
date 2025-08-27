@@ -19,6 +19,12 @@ const shareListBtn = document.getElementById('share-list-btn');
 const categoryFilter = document.getElementById('category-filter');
 const calendarModal = document.getElementById('calendar-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
+const viewRecipeModal = document.getElementById('view-recipe-modal');
+const closeViewModalBtn = document.getElementById('close-view-modal-btn');
+const viewTitle = document.getElementById('view-title');
+const viewCategory = document.getElementById('view-category');
+const viewIngredients = document.getElementById('view-ingredients');
+const viewInstructions = document.getElementById('view-instructions');
 
 let allRecipes = [];
 
@@ -29,6 +35,43 @@ async function loadRecipes() {
     allRecipes = data;
     populateCategoryFilter();
     renderRecipes(categoryFilter.value);
+}
+
+async function viewRecipe(id) {
+    // Fetch the specific recipe by its ID
+    const { data: recipe, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        console.error('Error fetching recipe for viewing:', error);
+        return;
+    }
+
+    // Populate the modal with the recipe's data
+    viewTitle.textContent = recipe.name;
+    viewCategory.textContent = `Category: ${recipe.category || 'N/A'}`;
+    
+    // Clear previous list items
+    viewIngredients.innerHTML = '';
+    viewInstructions.innerHTML = '';
+
+    recipe.ingredients.forEach(ing => {
+        const li = document.createElement('li');
+        li.textContent = `${ing.qty} ${ing.unit || ''} ${ing.name}`.trim();
+        viewIngredients.appendChild(li);
+    });
+
+    recipe.instructions.forEach(step => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        viewInstructions.appendChild(li);
+    });
+
+    // Show the modal
+    viewRecipeModal.classList.remove('hidden');
 }
 
 function populateCategoryFilter() {
@@ -50,9 +93,17 @@ function populateCategoryFilter() {
 }
 
 function renderRecipes(filter) {
-    if (!filter) { recipeList.classList.add('hidden'); return; }
+    if (!filter) {
+        recipeList.classList.add('hidden');
+        return;
+    }
+
     recipeList.innerHTML = '';
-    const filteredRecipes = (filter === 'all') ? allRecipes : allRecipes.filter(recipe => recipe.category === filter);
+
+    const filteredRecipes = (filter === 'all')
+        ? allRecipes
+        : allRecipes.filter(recipe => recipe.category === filter);
+
     if (filteredRecipes.length === 0) {
         recipeList.innerHTML = '<p>No recipes found in this category.</p>';
     } else {
@@ -65,6 +116,7 @@ function renderRecipes(filter) {
                 </div>
                 <p>Category: ${recipe.category}</p>
                 <div class="recipe-actions">
+                    <button class="view-btn" onclick="viewRecipe(${recipe.id})">View</button>
                     <button onclick="populateFormForEdit(${recipe.id})">Edit</button>
                     <button class="delete-btn" onclick="deleteRecipe(${recipe.id})">Delete</button>
                 </div>
@@ -333,7 +385,15 @@ cancelBtn.addEventListener('click', () => { addRecipeContainer.classList.add('hi
 closeModalBtn.addEventListener('click', () => { calendarModal.classList.add('hidden'); });
 calendarModal.addEventListener('click', (event) => { if (event.target === calendarModal) { calendarModal.classList.add('hidden'); } });
 document.addEventListener('DOMContentLoaded', async () => { addRecipeContainer.classList.add('hidden'); addIngredientInput(); await loadRecipes(); await renderMealPlanner(); });
+closeViewModalBtn.addEventListener('click', () => {
+    viewRecipeModal.classList.add('hidden');
+});
 
+viewRecipeModal.addEventListener('click', (event) => {
+    if (event.target === viewRecipeModal) {
+        viewRecipeModal.classList.add('hidden');
+    }
+});
 
 
 
