@@ -24,6 +24,8 @@ const viewTitle = document.getElementById('view-title');
 const viewCategory = document.getElementById('view-category');
 const viewIngredients = document.getElementById('view-ingredients');
 const viewInstructions = document.getElementById('view-instructions');
+const recipeImportText = document.getElementById('recipe-import-text');
+const parseRecipeBtn = document.getElementById('parse-recipe-btn');
 
 let allRecipes = [];
 let currentRecipeInView = null;
@@ -170,9 +172,7 @@ async function handleFormSubmit(event) {
     }
     const instructions = instructionsText.split('\n').filter(line => line.trim() !== '');
     const recipeData = { name, category, ingredients, instructions };
-    const { error } = recipeId
-        ? await supabase.from('recipes').update(recipeData).eq('id', recipeId)
-        : await supabase.from('recipes').insert([recipeData]);
+    const { error } = recipeId ? await supabase.from('recipes').update(recipeData).eq('id', recipeId) : await supabase.from('recipes').insert([recipeData]);
     if (error) { alert(`Failed to save recipe: ${error.message}`); return; }
     recipeForm.reset();
     ingredientInputs.innerHTML = '<label>Ingredients</label>';
@@ -205,9 +205,7 @@ async function deleteRecipe(id) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// 3. DYNAMIC INGREDIENT INPUTS
-// -----------------------------------------------------------------------------
+// DYNAMIC INGREDIENT INPUTS
 function addIngredientInput(ingredient = {}) {
     const div = document.createElement('div');
     div.className = 'ingredient-row';
@@ -220,9 +218,7 @@ function addIngredientInput(ingredient = {}) {
     ingredientInputs.appendChild(div);
 }
 
-// -----------------------------------------------------------------------------
-// 4. MEAL PLANNER & GROCERY LIST
-// -----------------------------------------------------------------------------
+// MEAL PLANNER & GROCERY LIST
 async function renderMealPlanner() {
     const { data: recipes, error } = await supabase.from('recipes').select('id, name');
     if (error) { console.error('Error fetching recipes for planner:', error); return; }
@@ -321,9 +317,7 @@ async function shareGroceryList() {
     }
 }
 
-// -----------------------------------------------------------------------------
-// 5. COOKBOOK & CALENDAR FUNCTIONS
-// -----------------------------------------------------------------------------
+// COOKBOOK & CALENDAR FUNCTIONS
 function printCookbook() {
     const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
     const selectedIds = Array.from(checkedBoxes).map(box => box.value);
@@ -348,9 +342,50 @@ async function exportToCalendar(dateString) {
     window.open(calendarUrl, '_blank');
 }
 
-// -----------------------------------------------------------------------------
-// 6. EVENT LISTENERS & INITIALIZATION
-// -----------------------------------------------------------------------------
+// RECIPE IMPORT & PARSING
+function parseRecipeText() {
+    const text = recipeImportText.value;
+    if (!text.trim()) { alert('Please paste recipe text into the box.'); return; }
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+    const recipeName = lines.shift() || '';
+    document.getElementById('recipe-name').value = recipeName;
+    const ingredientsIndex = lines.findIndex(line => /ingredients/i.test(line));
+    const instructionsIndex = lines.findIndex(line => /instructions|directions|method|preparation/i.test(line));
+    if (ingredientsIndex === -1 || instructionsIndex === -1) {
+        alert("Could not find 'Ingredients' and 'Instructions' sections.");
+        return;
+    }
+    const ingredientLines = lines.slice(ingredientsIndex + 1, instructionsIndex);
+    const instructionLines = lines.slice(instructionsIndex + 1);
+    ingredientInputs.innerHTML = '<label>Ingredients</label>';
+    ingredientLines.forEach(line => {
+        const parsed = parseIngredientLine(line);
+        addIngredientInput(parsed);
+    });
+    document.getElementById('recipe-instructions').value = instructionLines.join('\n');
+    recipeImportText.value = '';
+}
+
+function parseIngredientLine(line) {
+    const originalLine = line.trim();
+    let name = originalLine;
+    let qty = '';
+    let unit = '';
+    const qtyMatch = originalLine.match(/^[\d\s./⁄-]+/);
+    if (qtyMatch) {
+        qty = qtyMatch[0].trim();
+        name = originalLine.replace(qtyMatch[0], '').trim();
+        const units = ['cup', 'cups', 'oz', 'ounce', 'ounces', 'tbsp', 'tablespoon', 'tablespoons', 'tsp', 'teaspoon', 'teaspoons', 'lb', 'lbs', 'pound', 'pounds', 'clove', 'cloves'];
+        const nameParts = name.split(' ');
+        if (units.includes(nameParts[0].toLowerCase().replace(/s$/, ''))) {
+            unit = nameParts.shift();
+            name = nameParts.join(' ');
+        }
+    }
+    return { name, qty, unit };
+}
+
+// EVENT LISTENERS & INITIALIZATION
 recipeForm.addEventListener('submit', handleFormSubmit);
 addIngredientBtn.addEventListener('click', () => addIngredientInput());
 generateListBtn.addEventListener('click', generateGroceryList);
@@ -359,6 +394,7 @@ finalizeListBtn.addEventListener('click', finalizeGroceryList);
 shareListBtn.addEventListener('click', shareGroceryList);
 categoryFilter.addEventListener('change', () => renderRecipes(categoryFilter.value));
 searchInput.addEventListener('input', () => renderRecipes(categoryFilter.value));
+parseRecipeBtn.addEventListener('click', parseRecipeText);
 showFormBtn.addEventListener('click', () => { addRecipeContainer.classList.remove('hidden'); showFormBtn.classList.add('hidden'); });
 cancelBtn.addEventListener('click', () => { addRecipeContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); recipeForm.reset(); ingredientInputs.innerHTML = '<label>Ingredients</label>'; addIngredientInput(); });
 closeViewModalBtn.addEventListener('click', () => { viewRecipeModal.classList.add('hidden'); });
