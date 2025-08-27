@@ -99,7 +99,6 @@ button.utility-btn:hover { background-color: #6c7a7b; }
     font-size: 1rem;
 }
 
-
 /* -----------------------------------------------------
     5. DYNAMIC INGREDIENT INPUTS
     -----------------------------------------------------
@@ -163,6 +162,25 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .modal-content h2 { text-align: center; }
 #view-ingredients, #view-instructions { margin-top: 1rem; padding-left: 20px; }
 #view-ingredients li, #view-instructions li { margin-bottom: 0.5rem; }
+#scaling-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.scale-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    background-color: #ecf0f1;
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    border-radius: 4px;
+}
+.scale-btn.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
 
 /* -----------------------------------------------------
     8. PRINT PREVIEW PAGE STYLES
