@@ -78,7 +78,30 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 #recipe-list button { display: inline-block; width: auto; padding: 8px 12px; font-size: 0.9rem; margin-top: 0.5rem; }
 
 /* -----------------------------------------------------
-    4. DYNAMIC INGREDIENT INPUTS
+    4. FILTER & SEARCH CONTROLS
+    -----------------------------------------------------
+*/
+.filter-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.control-group {
+    flex: 1;
+    min-width: 200px;
+}
+#search-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+
+/* -----------------------------------------------------
+    5. DYNAMIC INGREDIENT INPUTS
     -----------------------------------------------------
 */
 .ingredient-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
@@ -90,7 +113,7 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .ingredient-row .remove-ingredient-btn:hover { background-color: #c0392b; }
 
 /* -----------------------------------------------------
-    5. RECIPE LIST, MEAL PLANNER, & GROCERY LIST
+    6. RECIPE LIST, MEAL PLANNER, & GROCERY LIST
     -----------------------------------------------------
 */
 #recipe-list div { border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; margin-bottom: 1rem; background-color: #fafbfc; }
@@ -112,7 +135,7 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .grocery-actions { display: flex; gap: 1rem; margin-top: 1rem; }
 
 /* -----------------------------------------------------
-    6. VIEW RECIPE MODAL
+    7. VIEW RECIPE MODAL
     -----------------------------------------------------
 */
 .modal-backdrop {
@@ -134,15 +157,15 @@ button.utility-btn:hover { background-color: #6c7a7b; }
     width: 90%;
     max-width: 500px;
     text-align: left;
-    max-height: 85vh; /* ADD THIS: Prevents it from being taller than the screen */
-    overflow-y: auto;   /* ADD THIS: Makes the content scroll if it's too long */
+    max-height: 85vh;
+    overflow-y: auto;
 }
 .modal-content h2 { text-align: center; }
 #view-ingredients, #view-instructions { margin-top: 1rem; padding-left: 20px; }
 #view-ingredients li, #view-instructions li { margin-bottom: 0.5rem; }
 
 /* -----------------------------------------------------
-    7. PRINT PREVIEW PAGE STYLES
+    8. PRINT PREVIEW PAGE STYLES
     -----------------------------------------------------
 */
 .print-header { text-align: center; margin-bottom: 2rem; }
@@ -150,7 +173,7 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .back-button:hover { background-color: #34495e; }
 
 /* -----------------------------------------------------
-    8. RESPONSIVE & PRINT
+    9. RESPONSIVE & PRINT
     -----------------------------------------------------
 */
 @media (max-width: 600px) {
@@ -160,24 +183,4 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 @media print {
     .no-print { display: none; }
     .recipe-print { page-break-after: always; }
-}
-
-/* Add these styles for the new filter controls */
-.filter-controls {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.control-group {
-    flex-grow: 1;
-}
-
-#search-input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 1rem;
 }
