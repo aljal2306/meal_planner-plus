@@ -38,7 +38,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 1.5rem 0; 
     2. TYPOGRAPHY
     -----------------------------------------------------
 */
-h1, h2, h3 { color: var(--primary-color); margin-bottom: 0.5rem; }
+h1, h2, h3, h4 { color: var(--primary-color); margin-bottom: 0.5rem; }
 h1 { text-align: center; margin-bottom: 1.5rem; }
 h3 { margin-top: 1.5rem; }
 label { display: block; font-weight: bold; margin-bottom: 0.5rem; color: var(--primary-color); }
@@ -73,12 +73,34 @@ button {
 }
 
 button:hover { background-color: #2980b9; }
-button.utility-btn { background-color: #7f8c8d; margin-top: -0.5rem; }
+button.utility-btn { background-color: #7f8c8d; margin-top: 0; }
 button.utility-btn:hover { background-color: #6c7a7b; }
 #recipe-list button { display: inline-block; width: auto; padding: 8px 12px; font-size: 0.9rem; margin-top: 0.5rem; }
 
 /* -----------------------------------------------------
-    4. FILTER & SEARCH CONTROLS
+    4. RECIPE IMPORTER
+    -----------------------------------------------------
+*/
+.import-section {
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    background-color: #fafbfc;
+}
+#recipe-import-text {
+    width: 100%;
+    padding: 10px;
+    margin: 0.5rem 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+
+/* -----------------------------------------------------
+    5. FILTER & SEARCH CONTROLS
     -----------------------------------------------------
 */
 .filter-controls {
@@ -99,8 +121,9 @@ button.utility-btn:hover { background-color: #6c7a7b; }
     font-size: 1rem;
 }
 
+
 /* -----------------------------------------------------
-    5. DYNAMIC INGREDIENT INPUTS
+    6. DYNAMIC INGREDIENT INPUTS
     -----------------------------------------------------
 */
 .ingredient-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
@@ -112,7 +135,7 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .ingredient-row .remove-ingredient-btn:hover { background-color: #c0392b; }
 
 /* -----------------------------------------------------
-    6. RECIPE LIST, MEAL PLANNER, & GROCERY LIST
+    7. RECIPE LIST, MEAL PLANNER, & GROCERY LIST
     -----------------------------------------------------
 */
 #recipe-list div { border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; margin-bottom: 1rem; background-color: #fafbfc; }
@@ -134,7 +157,7 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .grocery-actions { display: flex; gap: 1rem; margin-top: 1rem; }
 
 /* -----------------------------------------------------
-    7. VIEW RECIPE MODAL
+    8. VIEW RECIPE MODAL
     -----------------------------------------------------
 */
 .modal-backdrop {
@@ -183,7 +206,7 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 }
 
 /* -----------------------------------------------------
-    8. PRINT PREVIEW PAGE STYLES
+    9. PRINT PREVIEW PAGE STYLES
     -----------------------------------------------------
 */
 .print-header { text-align: center; margin-bottom: 2rem; }
@@ -191,7 +214,7 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .back-button:hover { background-color: #34495e; }
 
 /* -----------------------------------------------------
-    9. RESPONSIVE & PRINT
+    10. RESPONSIVE & PRINT
     -----------------------------------------------------
 */
 @media (max-width: 600px) {
