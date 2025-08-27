@@ -134,6 +134,8 @@ button.utility-btn:hover { background-color: #6c7a7b; }
     width: 90%;
     max-width: 500px;
     text-align: left;
+    max-height: 85vh; /* ADD THIS: Prevents it from being taller than the screen */
+    overflow-y: auto;   /* ADD THIS: Makes the content scroll if it's too long */
 }
 .modal-content h2 { text-align: center; }
 #view-ingredients, #view-instructions { margin-top: 1rem; padding-left: 20px; }
