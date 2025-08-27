@@ -155,18 +155,32 @@ async function handleFormSubmit(event) {
     const name = document.getElementById('recipe-name').value;
     const category = document.getElementById('recipe-category').value;
     const instructionsText = document.getElementById('recipe-instructions').value;
+
     const ingredients = [];
     document.querySelectorAll('.ingredient-row').forEach(row => {
         const ingredientName = row.querySelector('.ingredient-name').value;
         const quantity = row.querySelector('.ingredient-qty').value;
         const unit = row.querySelector('.ingredient-unit').value;
-        if (ingredientName && quantity) { ingredients.push({ name: ingredientName, qty: quantity, unit: unit }); }
+        if (ingredientName && quantity) {
+            ingredients.push({ name: ingredientName, qty: quantity, unit: unit });
+        }
     });
-    if (!name || ingredients.length === 0 || !instructionsText) { alert('Please fill out all required fields.'); return; }
+
+    // This is the updated, more flexible validation
+    if (!name) {
+        alert('A recipe name is required.');
+        return;
+    }
+
     const instructions = instructionsText.split('\n').filter(line => line.trim() !== '');
     const recipeData = { name, category, ingredients, instructions };
-    const { error } = recipeId ? await supabase.from('recipes').update(recipeData).eq('id', recipeId) : await supabase.from('recipes').insert([recipeData]);
+
+    const { error } = recipeId
+        ? await supabase.from('recipes').update(recipeData).eq('id', recipeId)
+        : await supabase.from('recipes').insert([recipeData]);
+
     if (error) { alert(`Failed to save recipe: ${error.message}`); return; }
+
     recipeForm.reset();
     ingredientInputs.innerHTML = '<label>Ingredients</label>';
     addIngredientInput();
