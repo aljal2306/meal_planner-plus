@@ -17,6 +17,7 @@ const cancelBtn = document.getElementById('cancel-btn');
 const finalizeListBtn = document.getElementById('finalize-list-btn');
 const shareListBtn = document.getElementById('share-list-btn');
 const categoryFilter = document.getElementById('category-filter');
+const searchInput = document.getElementById('search-input');
 const viewRecipeModal = document.getElementById('view-recipe-modal');
 const closeViewModalBtn = document.getElementById('close-view-modal-btn');
 const viewTitle = document.getElementById('view-title');
@@ -57,10 +58,14 @@ function populateCategoryFilter() {
 
 function renderRecipes(filter) {
     if (!filter) { recipeList.classList.add('hidden'); return; }
+    const searchTerm = searchInput.value.toLowerCase();
     recipeList.innerHTML = '';
-    const filteredRecipes = (filter === 'all') ? allRecipes : allRecipes.filter(recipe => recipe.category === filter);
+    let filteredRecipes = (filter === 'all') ? allRecipes : allRecipes.filter(recipe => recipe.category === filter);
+    if (searchTerm) {
+        filteredRecipes = filteredRecipes.filter(recipe => recipe.name.toLowerCase().includes(searchTerm));
+    }
     if (filteredRecipes.length === 0) {
-        recipeList.innerHTML = '<p>No recipes found in this category.</p>';
+        recipeList.innerHTML = '<p>No recipes found.</p>';
     } else {
         filteredRecipes.forEach(recipe => {
             const recipeEl = document.createElement('div');
@@ -296,6 +301,7 @@ printCookbookBtn.addEventListener('click', printCookbook);
 finalizeListBtn.addEventListener('click', finalizeGroceryList);
 shareListBtn.addEventListener('click', shareGroceryList);
 categoryFilter.addEventListener('change', () => renderRecipes(categoryFilter.value));
+searchInput.addEventListener('input', () => renderRecipes(categoryFilter.value));
 showFormBtn.addEventListener('click', () => { addRecipeContainer.classList.remove('hidden'); showFormBtn.classList.add('hidden'); });
 cancelBtn.addEventListener('click', () => { addRecipeContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); recipeForm.reset(); ingredientInputs.innerHTML = '<label>Ingredients</label>'; addIngredientInput(); });
 closeViewModalBtn.addEventListener('click', () => { viewRecipeModal.classList.add('hidden'); });
