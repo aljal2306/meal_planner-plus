@@ -47,7 +47,7 @@ label { display: block; font-weight: bold; margin-bottom: 0.5rem; color: var(--p
     3. FORM & BUTTONS
     -----------------------------------------------------
 */
-#recipe-form input, #recipe-form textarea, #category-filter {
+#recipe-form input, #recipe-form textarea, #category-filter, #author-filter {
     width: 100%;
     padding: 10px;
     margin-bottom: 1rem;
@@ -120,7 +120,6 @@ button.utility-btn:hover { background-color: #6c7a7b; }
     border-radius: 4px;
     font-size: 1rem;
 }
-
 
 /* -----------------------------------------------------
     6. DYNAMIC INGREDIENT INPUTS
