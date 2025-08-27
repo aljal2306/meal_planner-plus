@@ -16,7 +16,12 @@
             <h2>My Recipes</h2>
             <button id="show-form-btn">➕ Add New Recipe</button>
             <div id="add-recipe-container" class="hidden">
-                <p>Add a new recipe or edit an existing one.</p>
+                <div class="import-section">
+                    <h4>Import from Text</h4>
+                    <p>Paste a recipe below and click "Parse" to auto-fill the form.</p>
+                    <textarea id="recipe-import-text" rows="10" placeholder="Paste full recipe text here..."></textarea>
+                    <button type="button" id="parse-recipe-btn" class="utility-btn">Parse Recipe</button>
+                </div>
                 <form id="recipe-form">
                     <input type="hidden" id="recipe-id">
                     <input type="text" id="recipe-name" placeholder="Recipe Name" required>
