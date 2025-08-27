@@ -17,11 +17,13 @@ const cancelBtn = document.getElementById('cancel-btn');
 const finalizeListBtn = document.getElementById('finalize-list-btn');
 const shareListBtn = document.getElementById('share-list-btn');
 const categoryFilter = document.getElementById('category-filter');
+const authorFilter = document.getElementById('author-filter');
 const searchInput = document.getElementById('search-input');
 const viewRecipeModal = document.getElementById('view-recipe-modal');
 const closeViewModalBtn = document.getElementById('close-view-modal-btn');
 const viewTitle = document.getElementById('view-title');
 const viewCategory = document.getElementById('view-category');
+const viewAuthor = document.getElementById('view-author');
 const viewIngredients = document.getElementById('view-ingredients');
 const viewInstructions = document.getElementById('view-instructions');
 const recipeImportText = document.getElementById('recipe-import-text');
@@ -31,14 +33,15 @@ let allRecipes = [];
 let currentRecipeInView = null;
 
 // -----------------------------------------------------------------------------
-// 2. RECIPE FUNCTIONS (CRUD)
+// 2. RECIPE FUNCTIONS (CRUD & Filtering)
 // -----------------------------------------------------------------------------
 async function loadRecipes() {
     const { data, error } = await supabase.from('recipes').select('*').order('name', { ascending: true });
     if (error) { console.error('Error fetching recipes:', error); return; }
     allRecipes = data;
     populateCategoryFilter();
-    renderRecipes(categoryFilter.value);
+    populateAuthorFilter();
+    renderRecipes();
 }
 
 function populateCategoryFilter() {
@@ -59,14 +62,48 @@ function populateCategoryFilter() {
     if (currentFilter) { categoryFilter.value = currentFilter; }
 }
 
-function renderRecipes(filter) {
-    if (!filter) { recipeList.classList.add('hidden'); return; }
+function populateAuthorFilter() {
+    const authors = ['all', ...new Set(allRecipes.map(recipe => recipe.author).filter(a => a))];
+    const currentFilter = authorFilter.value;
+    authorFilter.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.textContent = "Select an author...";
+    defaultOption.selected = true;
+    authorFilter.appendChild(defaultOption);
+    authors.forEach(author => {
+        const option = document.createElement('option');
+        option.value = author;
+        option.textContent = author;
+        authorFilter.appendChild(option);
+    });
+    if (currentFilter) { authorFilter.value = currentFilter; }
+}
+
+function renderRecipes() {
+    const categoryValue = categoryFilter.value;
+    const authorValue = authorFilter.value;
     const searchTerm = searchInput.value.toLowerCase();
+    
+    // Hide the list if no filters are selected
+    if (!categoryValue && !authorValue && !searchTerm) {
+        recipeList.classList.add('hidden');
+        return;
+    }
+
     recipeList.innerHTML = '';
-    let filteredRecipes = (filter === 'all') ? allRecipes : allRecipes.filter(recipe => recipe.category === filter);
+    let filteredRecipes = allRecipes;
+
+    if (categoryValue && categoryValue !== 'all') {
+        filteredRecipes = filteredRecipes.filter(recipe => recipe.category === categoryValue);
+    }
+    if (authorValue && authorValue !== 'all') {
+        filteredRecipes = filteredRecipes.filter(recipe => recipe.author === authorValue);
+    }
     if (searchTerm) {
         filteredRecipes = filteredRecipes.filter(recipe => recipe.name.toLowerCase().includes(searchTerm));
     }
+
     if (filteredRecipes.length === 0) {
         recipeList.innerHTML = '<p>No recipes found.</p>';
     } else {
@@ -77,7 +114,8 @@ function renderRecipes(filter) {
                     <input type="checkbox" class="recipe-checkbox" value="${recipe.id}">
                     <h3>${recipe.name}</h3>
                 </div>
-                <p>Category: ${recipe.category}</p>
+                <p><strong>Category:</strong> ${recipe.category || 'N/A'}</p>
+                <p><strong>Author:</strong> ${recipe.author || 'N/A'}</p>
                 <div class="recipe-actions">
                     <button class="view-btn" onclick="viewRecipe(${recipe.id})">View</button>
                     <button onclick="populateFormForEdit(${recipe.id})">Edit</button>
@@ -96,6 +134,7 @@ async function viewRecipe(id) {
     currentRecipeInView = recipe;
     viewTitle.textContent = recipe.name;
     viewCategory.textContent = `Category: ${recipe.category || 'N/A'}`;
+    viewAuthor.textContent = `By: ${recipe.author || 'N/A'}`;
     viewInstructions.innerHTML = '';
     recipe.instructions.forEach(step => {
         const li = document.createElement('li');
@@ -156,6 +195,7 @@ async function handleFormSubmit(event) {
     const recipeId = document.getElementById('recipe-id').value;
     const name = document.getElementById('recipe-name').value;
     const category = document.getElementById('recipe-category').value;
+    const author = document.getElementById('recipe-author').value;
     const instructionsText = document.getElementById('recipe-instructions').value;
     const ingredients = [];
     document.querySelectorAll('.ingredient-row').forEach(row => {
@@ -166,12 +206,9 @@ async function handleFormSubmit(event) {
             ingredients.push({ name: ingredientName, qty: quantity, unit: unit });
         }
     });
-    if (!name) {
-        alert('A recipe name is required.');
-        return;
-    }
+    if (!name) { alert('A recipe name is required.'); return; }
     const instructions = instructionsText.split('\n').filter(line => line.trim() !== '');
-    const recipeData = { name, category, ingredients, instructions };
+    const recipeData = { name, category, author, ingredients, instructions };
     const { error } = recipeId ? await supabase.from('recipes').update(recipeData).eq('id', recipeId) : await supabase.from('recipes').insert([recipeData]);
     if (error) { alert(`Failed to save recipe: ${error.message}`); return; }
     recipeForm.reset();
@@ -191,6 +228,7 @@ async function populateFormForEdit(id) {
     document.getElementById('recipe-id').value = recipe.id;
     document.getElementById('recipe-name').value = recipe.name;
     document.getElementById('recipe-category').value = recipe.category;
+    document.getElementById('recipe-author').value = recipe.author;
     document.getElementById('recipe-instructions').value = recipe.instructions.join('\n');
     ingredientInputs.innerHTML = '<label>Ingredients</label>';
     recipe.ingredients.forEach(ing => addIngredientInput(ing));
@@ -205,7 +243,9 @@ async function deleteRecipe(id) {
     }
 }
 
-// DYNAMIC INGREDIENT INPUTS
+// -----------------------------------------------------------------------------
+// 3. DYNAMIC INGREDIENT INPUTS
+// -----------------------------------------------------------------------------
 function addIngredientInput(ingredient = {}) {
     const div = document.createElement('div');
     div.className = 'ingredient-row';
@@ -218,7 +258,9 @@ function addIngredientInput(ingredient = {}) {
     ingredientInputs.appendChild(div);
 }
 
-// MEAL PLANNER & GROCERY LIST
+// -----------------------------------------------------------------------------
+// 4. MEAL PLANNER & GROCERY LIST
+// -----------------------------------------------------------------------------
 async function renderMealPlanner() {
     const { data: recipes, error } = await supabase.from('recipes').select('id, name');
     if (error) { console.error('Error fetching recipes for planner:', error); return; }
@@ -317,7 +359,9 @@ async function shareGroceryList() {
     }
 }
 
-// COOKBOOK & CALENDAR FUNCTIONS
+// -----------------------------------------------------------------------------
+// 5. COOKBOOK & CALENDAR FUNCTIONS
+// -----------------------------------------------------------------------------
 function printCookbook() {
     const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
     const selectedIds = Array.from(checkedBoxes).map(box => box.value);
@@ -342,7 +386,9 @@ async function exportToCalendar(dateString) {
     window.open(calendarUrl, '_blank');
 }
 
-// RECIPE IMPORT & PARSING
+// -----------------------------------------------------------------------------
+// 6. RECIPE IMPORT & PARSING
+// -----------------------------------------------------------------------------
 function parseRecipeText() {
     const text = recipeImportText.value;
     if (!text.trim()) { alert('Please paste recipe text into the box.'); return; }
@@ -385,15 +431,18 @@ function parseIngredientLine(line) {
     return { name, qty, unit };
 }
 
-// EVENT LISTENERS & INITIALIZATION
+// -----------------------------------------------------------------------------
+// 7. EVENT LISTENERS & INITIALIZATION
+// -----------------------------------------------------------------------------
 recipeForm.addEventListener('submit', handleFormSubmit);
 addIngredientBtn.addEventListener('click', () => addIngredientInput());
 generateListBtn.addEventListener('click', generateGroceryList);
 printCookbookBtn.addEventListener('click', printCookbook);
 finalizeListBtn.addEventListener('click', finalizeGroceryList);
 shareListBtn.addEventListener('click', shareGroceryList);
-categoryFilter.addEventListener('change', () => renderRecipes(categoryFilter.value));
-searchInput.addEventListener('input', () => renderRecipes(categoryFilter.value));
+categoryFilter.addEventListener('change', () => renderRecipes());
+authorFilter.addEventListener('change', () => renderRecipes());
+searchInput.addEventListener('input', () => renderRecipes());
 parseRecipeBtn.addEventListener('click', parseRecipeText);
 showFormBtn.addEventListener('click', () => { addRecipeContainer.classList.remove('hidden'); showFormBtn.classList.add('hidden'); });
 cancelBtn.addEventListener('click', () => { addRecipeContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); recipeForm.reset(); ingredientInputs.innerHTML = '<label>Ingredients</label>'; addIngredientInput(); });
