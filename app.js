@@ -26,6 +26,7 @@ const viewIngredients = document.getElementById('view-ingredients');
 const viewInstructions = document.getElementById('view-instructions');
 
 let allRecipes = [];
+let currentRecipeInView = null;
 
 // -----------------------------------------------------------------------------
 // 2. RECIPE FUNCTIONS (CRUD)
@@ -90,21 +91,62 @@ function renderRecipes(filter) {
 async function viewRecipe(id) {
     const { data: recipe, error } = await supabase.from('recipes').select('*').eq('id', id).single();
     if (error) { console.error('Error fetching recipe for viewing:', error); return; }
+    currentRecipeInView = recipe;
     viewTitle.textContent = recipe.name;
     viewCategory.textContent = `Category: ${recipe.category || 'N/A'}`;
-    viewIngredients.innerHTML = '';
     viewInstructions.innerHTML = '';
-    recipe.ingredients.forEach(ing => {
-        const li = document.createElement('li');
-        li.textContent = `${ing.qty} ${ing.unit || ''} ${ing.name}`.trim();
-        viewIngredients.appendChild(li);
-    });
     recipe.instructions.forEach(step => {
         const li = document.createElement('li');
         li.textContent = step;
         viewInstructions.appendChild(li);
     });
+    renderScaledIngredients(1);
     viewRecipeModal.classList.remove('hidden');
+}
+
+function renderScaledIngredients(multiplier) {
+    if (!currentRecipeInView) return;
+    const scalingControls = document.getElementById('scaling-controls');
+    const ingredientsList = document.getElementById('view-ingredients');
+    scalingControls.innerHTML = '';
+    const multipliers = [0.5, 1, 2, 3];
+    multipliers.forEach(m => {
+        const btn = document.createElement('button');
+        btn.className = 'scale-btn';
+        if (m === multiplier) btn.classList.add('active');
+        btn.textContent = `${m}x`;
+        btn.onclick = () => renderScaledIngredients(m);
+        scalingControls.appendChild(btn);
+    });
+    ingredientsList.innerHTML = '';
+    currentRecipeInView.ingredients.forEach(ing => {
+        const li = document.createElement('li');
+        const scaledQty = scaleQuantity(ing.qty, multiplier);
+        li.textContent = `${scaledQty} ${ing.unit || ''} ${ing.name}`.trim();
+        ingredientsList.appendChild(li);
+    });
+}
+
+function scaleQuantity(originalQty, multiplier) {
+    if (String(originalQty).includes('/')) {
+        try {
+            const parts = originalQty.split('/');
+            if (parts.length === 2) {
+                const decimal = parseFloat(parts[0]) / parseFloat(parts[1]);
+                if (!isNaN(decimal)) {
+                    const result = decimal * multiplier;
+                    return Number(result.toFixed(2));
+                }
+            }
+        } catch (e) { /* Fall through */ }
+    }
+    const num = parseFloat(originalQty);
+    if (!isNaN(num)) {
+        const result = num * multiplier;
+        return parseFloat(result.toFixed(2));
+    }
+    if (multiplier === 1) return originalQty;
+    return `${multiplier}x ${originalQty}`;
 }
 
 async function handleFormSubmit(event) {
