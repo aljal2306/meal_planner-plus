@@ -33,12 +33,23 @@
                 </form>
             </div>
             <hr>
-            <h3>Saved Recipes</h3>
-            <label for="category-filter">Filter by Category:</label>
-            <select id="category-filter"></select>
-            <div id="recipe-list" class="hidden"></div>
-            <button id="print-cookbook-btn">Generate Printable Cookbook</button>
-        </div>
+           <h3>Saved Recipes</h3>
+
+<div class="filter-controls">
+    <div class="control-group">
+        <label for="category-filter">Filter by Category:</label>
+        <select id="category-filter"></select>
+    </div>
+    <div class="control-group">
+        <label for="search-input">Search by Name:</label>
+        <input type="search" id="search-input" placeholder="Search recipes...">
+    </div>
+</div>
+
+<div id="recipe-list" class="hidden">
+    </div>
+
+<button id="print-cookbook-btn">Generate Printable Cookbook</button>
         
         <div class="section">
             <h2>Weekly Meal Plan</h2>
