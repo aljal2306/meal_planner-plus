@@ -119,3 +119,29 @@ button.utility-btn:hover { background-color: #6c7a7b; }
     .no-print { display: none; }
     .recipe-print { page-break-after: always; }
 }
+
+/* Add these styles for the "View" button and modal content */
+#recipe-list .view-btn {
+    background-color: #9b59b6; /* Purple */
+}
+
+#recipe-list .view-btn:hover {
+    background-color: #8e44ad; /* Darker Purple */
+}
+
+.modal-content {
+    text-align: left;
+}
+
+.modal-content h2 {
+    text-align: center;
+}
+
+#view-ingredients, #view-instructions {
+    margin-top: 1rem;
+    padding-left: 20px;
+}
+
+#view-ingredients li, #view-instructions li {
+    margin-bottom: 0.5rem;
+}
