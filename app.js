@@ -1,4 +1,7 @@
-// INITIALIZATION & SETUP
+// -----------------------------------------------------------------------------
+// 1. INITIALIZATION & SETUP
+// -----------------------------------------------------------------------------
+
 const SUPABASE_URL = 'https://gwrrzrxujbpnguyzpjme.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cnJ6cnh1amJwbmd1eXpwam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYwNjY2MTMsImV4cCI6MjA3MTY0MjYxM30.tkE0LawKsbolBHrqaS3iJno-LAd7skpl9pCQ-0Tuf1w';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -56,16 +59,14 @@ function populateSelect(selectElement, items, placeholderText) {
     const currentVal = selectElement.value;
     selectElement.innerHTML = '';
     
-    // Add a placeholder/default option
     const placeholder = document.createElement('option');
     placeholder.value = (selectElement.id === 'category-filter') ? "" : "all";
     placeholder.textContent = placeholderText;
     if (selectElement.id === 'category-filter') { placeholder.selected = true; }
     selectElement.appendChild(placeholder);
 
-    // Add the rest of the items
     items.forEach(item => {
-        if (item === 'all' && selectElement.id !== 'category-filter') return; // Skip 'all' if placeholder handles it
+        if (item === 'all' && selectElement.id !== 'category-filter') return;
         const option = document.createElement('option');
         option.value = item;
         option.textContent = item.charAt(0).toUpperCase() + item.slice(1);
@@ -74,7 +75,6 @@ function populateSelect(selectElement, items, placeholderText) {
 
     selectElement.value = currentVal || ((selectElement.id === 'category-filter') ? "" : "all");
 }
-
 
 function renderRecipes() {
     const category = categoryFilter.value;
@@ -283,7 +283,7 @@ function updateIngredientQuantities(multiplier) {
             
             if (!isNaN(numericValue)) {
                 let scaledValue = numericValue * multiplier;
-                newQty = Number(scaledValue.toFixed(2)).toString(); // Round to 2 decimal places
+                newQty = Number(scaledValue.toFixed(2)).toString();
             }
         } catch (e) { /* Keep original if parsing fails */ }
 
@@ -395,24 +395,40 @@ async function generateGroceryList() {
     });
 }
 
-function finalizeGroceryList() { /* ... implementation as before ... */ }
-async function shareGroceryList() { /* ... implementation as before ... */ }
+function finalizeGroceryList() {
+    const finalList = document.getElementById('final-grocery-list');
+    finalList.innerHTML = '';
+    const checkedItems = document.querySelectorAll('#grocery-list input[type="checkbox"]:checked');
+    if (checkedItems.length === 0) { finalList.innerHTML = '<p>No items selected.</p>'; return; }
+    const ul = document.createElement('ul');
+    checkedItems.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item.parentElement.textContent.trim();
+        ul.appendChild(li);
+    });
+    finalList.appendChild(ul);
+}
+
+async function shareGroceryList() {
+    const listItems = document.querySelectorAll('#final-grocery-list li');
+    if (listItems.length === 0) { alert('Please create a final list before sharing.'); return; }
+    let shareText = 'My Grocery List:\n';
+    listItems.forEach(item => { shareText += `- ${item.textContent}\n`; });
+    if (navigator.share) {
+        try { await navigator.share({ title: 'Grocery List', text: shareText }); } catch (error) { console.error('Error sharing:', error); }
+    } else {
+        try { await navigator.clipboard.writeText(shareText); alert('Grocery list copied to clipboard!'); } catch (error) { alert('Could not copy list.'); }
+    }
+}
 
 // COOKBOOK & CALENDAR FUNCTIONS
 function printCookbook() {
-    // 1. Find all the checked recipe checkboxes
     const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
     const selectedIds = Array.from(checkedBoxes).map(box => box.value);
-
-    // 2. Check if any recipes were selected
-    if (selectedIds.length === 0) {
-        alert('Please select at least one recipe to generate a cookbook.');
-        return;
-    }
-
-    // 3. Navigate to the new print page with the IDs in the URL
+    if (selectedIds.length === 0) { alert('Please select a recipe.'); return; }
     window.location.href = `print.html?ids=${selectedIds.join(',')}`;
 }
+
 async function openCalendarModal(mealId) {
     const { data: meal, error } = await supabase.from('meal_plan').select('*, recipes(name, instructions)').eq('id', mealId).single();
     if (error || !meal) { alert('Could not find meal to export.'); return; }
@@ -426,13 +442,37 @@ async function openCalendarModal(mealId) {
     calendarModal.classList.remove('hidden');
 }
 
-function generateGoogleCalendarLink(eventName, eventDetails, dateString, mealType) { /* ... implementation as before ... */ }
-function downloadIcsFile(eventName, eventDetails, dateString, mealType) { /* ... implementation as before ... */ }
+function generateGoogleCalendarLink(eventName, eventDetails, dateString, mealType) {
+    const eventTitle = encodeURIComponent(`${mealType}: ${eventName}`);
+    const startDate = new Date(dateString + 'T00:00:00');
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 1);
+    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
+    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
+    const eventDates = `${formattedStartDate}/${formattedEndDate}`;
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${encodeURIComponent(eventDetails)}&dates=${eventDates}`;
+}
 
-// -----------------------------------------------------------------------------
-// 6. EVENT LISTENERS & INITIALIZATION
-// -----------------------------------------------------------------------------
+function downloadIcsFile(eventName, eventDetails, dateString, mealType) {
+    const eventTitle = `${mealType}: ${eventName}`;
+    const startDate = new Date(dateString + 'T00:00:00');
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 1);
+    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
+    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
+    const icsContent = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT', `DTSTART;VALUE=DATE:${formattedStartDate}`, `DTEND;VALUE=DATE:${formattedEndDate}`, `SUMMARY:${eventTitle}`, `DESCRIPTION:${eventDetails.replace(/\n/g, '\\n')}`, 'END:VEVENT', 'END:VCALENDAR'].join('\n');
+    const blob = new Blob([icsContent], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${eventName}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 
+// EVENT LISTENERS & INITIALIZATION
 addMealForm.addEventListener('submit', handleAddMealForm);
 closeAddMealModalBtn.addEventListener('click', () => addMealModal.classList.add('hidden'));
 recipeForm.addEventListener('submit', handleFormSubmit);
