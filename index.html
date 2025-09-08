@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe & Meal Planner</title>
+    
     <link rel="stylesheet" href="style.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -16,7 +18,7 @@
             <h2>My Recipes</h2>
             <button id="show-form-btn">➕ Add New Recipe</button>
             <div id="add-recipe-container" class="hidden">
-                <div class="import-section">
+                 <div class="import-section">
                     <h4>Import from Text</h4>
                     <p>Paste a recipe below and click "Parse" to auto-fill the form.</p>
                     <textarea id="recipe-import-text" rows="10" placeholder="Paste full recipe text here..."></textarea>
@@ -58,7 +60,7 @@
         
         <div class="section">
             <h2>Weekly Meal Plan</h2>
-            <p>Assign recipes to each day of the week.</p>
+            <p>Add multiple meals for each day of the week.</p>
             <div id="meal-planner"></div>
         </div>
 
@@ -88,6 +90,30 @@
             <h3>Instructions</h3>
             <ol id="view-instructions"></ol>
             <button id="close-view-modal-btn" class="utility-btn">Close</button>
+        </div>
+    </div>
+    
+    <div id="add-meal-modal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3>Add a Meal</h3>
+            <form id="add-meal-form">
+                <input type="hidden" id="meal-plan-date">
+                <label for="meal-type-select">Meal Type</label>
+                <select id="meal-type-select" required>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Dessert">Dessert</option>
+                    <option value="Snack">Snack</option>
+                </select>
+                <label for="recipe-select">Choose a Saved Recipe (Optional)</label>
+                <select id="recipe-select"></select>
+                <p class="or-divider">OR</p>
+                <label for="ad-hoc-input">Enter an Ad Hoc Meal</label>
+                <input type="text" id="ad-hoc-input" placeholder="e.g., Leftovers">
+                <button type="submit">Save Meal</button>
+                <button type="button" id="close-add-meal-modal-btn" class="utility-btn">Cancel</button>
+            </form>
         </div>
     </div>
 
