@@ -325,13 +325,22 @@ async function loadMealPlan() {
     const today = new Date();
     const nextWeek = new Date();
     nextWeek.setDate(today.getDate() + 7);
+
+    // Fetch recipes for the dropdown at the same time
     const [planRes, recipesRes] = await Promise.all([
         supabase.from('meal_plan').select('*, recipes(name)').gte('plan_date', today.toISOString().split('T')[0]).lte('plan_date', nextWeek.toISOString().split('T')[0]),
         supabase.from('recipes').select('id, name').order('name')
     ]);
+
     const { data: plan, error: planError } = planRes;
     const { data: recipes, error: recipeError } = recipesRes;
-    if (planError || recipeError) { console.error('Error loading data:', planError || recipeError); return; }
+
+    if (planError || recipeError) {
+        console.error('Error loading data:', planError || recipeError);
+        return;
+    }
+
+    // Populate the recipe dropdown in the modal
     const recipeSelect = document.getElementById('recipe-select');
     recipeSelect.innerHTML = '<option value="">-- Choose a recipe --</option>';
     recipes.forEach(r => {
@@ -340,17 +349,27 @@ async function loadMealPlan() {
         option.textContent = r.name;
         recipeSelect.appendChild(option);
     });
+
+    // Clear existing meals before rendering
     document.querySelectorAll('.meals-list').forEach(list => list.innerHTML = '');
+
+    // Display the planned meals on their day cards
     plan.forEach(meal => {
         const dayCard = document.getElementById(`day-${meal.plan_date}`);
         if (dayCard) {
             const mealList = dayCard.querySelector('.meals-list');
             const mealEl = document.createElement('div');
             mealEl.className = 'planned-meal';
+            
             const mealName = meal.ad_hoc_meal || (meal.recipes ? meal.recipes.name : 'Unknown Recipe');
+            
+            // This is the updated HTML block with the new button
             mealEl.innerHTML = `
                 <div><span>${meal.meal_type}:</span> ${mealName}</div>
-                <button class="export-btn" onclick="openCalendarModal(${meal.id})">Calendar</button>
+                <div class="meal-actions">
+                    <button class="export-btn" onclick="openCalendarModal(${meal.id})">Calendar</button>
+                    <button class="delete-meal-btn" onclick="deleteMealPlanEntry(${meal.id})">Remove</button>
+                </div>
             `;
             mealList.appendChild(mealEl);
         }
