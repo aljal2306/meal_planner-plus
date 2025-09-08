@@ -45,33 +45,55 @@ function populateFilters() {
     populateSelect(authorFilter, authors);
 }
 
+// in app.js
 function populateSelect(selectElement, items) {
     const currentVal = selectElement.value;
     selectElement.innerHTML = '';
+
+    // Add a placeholder option for the category filter
+    if (selectElement.id === 'category-filter') {
+        const placeholder = document.createElement('option');
+        placeholder.value = ""; // Empty value will signal to hide the list
+        placeholder.textContent = "Select a category...";
+        selectElement.appendChild(placeholder);
+    }
+    
     items.forEach(item => {
         const option = document.createElement('option');
         option.value = item;
         option.textContent = (item === 'all') ? 'All' : item.charAt(0).toUpperCase() + item.slice(1);
         selectElement.appendChild(option);
     });
-    selectElement.value = currentVal || 'all';
+
+    // Restore the previous selection or default to the placeholder
+    selectElement.value = currentVal || "";
 }
 
 function renderRecipes() {
-    recipeList.innerHTML = '';
     const category = categoryFilter.value;
+    
+    // If the category filter is empty (placeholder is selected), hide the list
+    if (!category) {
+        recipeList.classList.add('hidden');
+        return; // Stop the function here
+    }
+
+    recipeList.innerHTML = '';
     const author = authorFilter.value;
     const searchTerm = searchInput.value.toLowerCase();
+
     const filteredRecipes = allRecipes.filter(r => 
         (category === 'all' || r.category === category) &&
         (author === 'all' || r.author === author) &&
         r.name.toLowerCase().includes(searchTerm)
     );
+
     if (filteredRecipes.length === 0) {
         recipeList.innerHTML = '<p>No recipes match your filters.</p>';
     } else {
         filteredRecipes.forEach(recipe => {
             const recipeEl = document.createElement('div');
+            // ... (the rest of the function remains the same)
             recipeEl.innerHTML = `
                 <div class="recipe-header">
                     <input type="checkbox" class="recipe-checkbox" value="${recipe.id}">
