@@ -156,3 +156,21 @@ button.utility-btn:hover { background-color: #6c7a7b; }
     .no-print { display: none; }
     .recipe-print { page-break-after: always; }
 }
+
+/* Add to style.css */
+.meal-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.delete-meal-btn {
+    width: auto !important;
+    display: inline-block !important;
+    padding: 5px 10px !important;
+    font-size: 0.8rem !important;
+    margin-left: 0 !important;
+    background-color: #c0392b !important;
+}
+.delete-meal-btn:hover {
+    background-color: #a93226 !important;
+}
