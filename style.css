@@ -1,4 +1,7 @@
-/* GENERAL STYLES & LAYOUT */
+/* -----------------------------------------------------
+    1. GENERAL STYLES & LAYOUT
+    -----------------------------------------------------
+*/
 :root {
     --primary-color: #2c3e50;
     --accent-color: #3498db;
@@ -26,13 +29,19 @@ body {
 hr { border: none; border-top: 1px solid var(--border-color); margin: 1.5rem 0; }
 .hidden { display: none !important; }
 
-/* TYPOGRAPHY */
+/* -----------------------------------------------------
+    2. TYPOGRAPHY
+    -----------------------------------------------------
+*/
 h1, h2, h3 { color: var(--primary-color); margin-bottom: 0.5rem; }
 h1 { text-align: center; margin-bottom: 1.5rem; }
 h3 { margin-top: 1.5rem; }
 label { display: block; font-weight: bold; margin-bottom: 0.5rem; color: var(--primary-color); }
 
-/* FORM & BUTTONS */
+/* -----------------------------------------------------
+    3. FORM, BUTTONS, & FILTERS
+    -----------------------------------------------------
+*/
 #recipe-form input, #recipe-form textarea, #category-filter, #author-filter, #search-input, #add-meal-form select, #add-meal-form input, .import-section textarea {
     width: 100%;
     padding: 10px;
@@ -63,7 +72,10 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .filter-controls { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
 .control-group { flex: 1; min-width: 200px; }
 
-/* DYNAMIC INGREDIENT INPUTS */
+/* -----------------------------------------------------
+    4. DYNAMIC INGREDIENT INPUTS
+    -----------------------------------------------------
+*/
 .ingredient-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
 .ingredient-row input { margin-bottom: 0; }
 .ingredient-row .ingredient-name { flex-grow: 3; }
@@ -72,7 +84,10 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .ingredient-row .remove-ingredient-btn { width: auto; padding: 8px 12px; background-color: #e74c3c; font-size: 0.8rem; margin-bottom: 0; }
 .ingredient-row .remove-ingredient-btn:hover { background-color: #c0392b; }
 
-/* RECIPE LIST, MEAL PLANNER, & GROCERY LIST */
+/* -----------------------------------------------------
+    5. RECIPE LIST, MEAL PLANNER, & GROCERY LIST
+    -----------------------------------------------------
+*/
 #recipe-list div { border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; margin-bottom: 1rem; background-color: #fafbfc; }
 .recipe-header { display: flex; align-items: center; gap: 10px; }
 .recipe-title { cursor: pointer; text-decoration: underline; color: var(--primary-color); }
@@ -86,14 +101,17 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 .export-btn { width: auto !important; display: inline-block !important; padding: 5px 10px !important; font-size: 0.8rem !important; margin-left: 10px; background-color: #27ae60 !important; }
 .export-btn:hover { background-color: #229954 !important; }
 .or-divider { text-align: center; font-weight: bold; margin: 1rem 0; }
-#grocery-list, #final-grocery-list ul, #view-ingredients, #view-instructions { list-style-type: none; padding-left: 0; }
+#grocery-list, #final-grocery-list ul, #view-ingredients { list-style-type: none; padding-left: 0; }
+#view-instructions { list-style-type: decimal; padding-left: 1.5rem; }
 #grocery-list li, #final-grocery-list li { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color); }
 #grocery-list li input[type="checkbox"] { margin-right: 10px; width: 16px; height: 16px; }
 #grocery-list li:has(input:checked) { color: #95a5a6; text-decoration: line-through; }
 .grocery-actions { display: flex; gap: 1rem; margin-top: 1rem; }
-#view-instructions { list-style-type: decimal; padding-left: 1.5rem; }
 
-/* MODALS */
+/* -----------------------------------------------------
+    6. MODALS (VIEW RECIPE, ADD MEAL, CALENDAR)
+    -----------------------------------------------------
+*/
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -108,13 +126,27 @@ button.utility-btn:hover { background-color: #6c7a7b; }
 }
 .modal-content { background-color: white; padding: 2rem; border-radius: 8px; text-align: left; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
 .modal-content h3 { text-align: center; }
+#scaling-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 1rem; }
+#scaling-controls label { margin-bottom: 0; }
+#scaling-controls button { width: auto; padding: 5px 10px; margin-bottom: 0; background-color: #ecf0f1; color: var(--primary-color); }
+#scaling-controls button.active { background-color: var(--accent-color); color: white; }
+.modal-actions { margin: 1.5rem 0; }
+.calendar-button { display: block; padding: 12px; margin-bottom: 1rem; border-radius: 5px; text-decoration: none; color: white; font-weight: bold; border: none; width: 100%; cursor: pointer; }
+.calendar-button.google { background-color: #4285F4; }
+.calendar-button.apple { background-color: #333333; }
 
-/* PRINT PREVIEW PAGE STYLES */
+/* -----------------------------------------------------
+    7. PRINT PREVIEW PAGE STYLES
+    -----------------------------------------------------
+*/
 .print-header { text-align: center; margin-bottom: 2rem; }
 .back-button { display: inline-block; padding: 10px 20px; background-color: var(--primary-color); color: white; text-decoration: none; border-radius: 5px; margin-bottom: 1rem; }
 .back-button:hover { background-color: #34495e; }
 
-/* RESPONSIVE & PRINT */
+/* -----------------------------------------------------
+    8. RESPONSIVE & PRINT
+    -----------------------------------------------------
+*/
 @media (max-width: 600px) {
     .ingredient-row { flex-wrap: wrap; }
     .ingredient-row .remove-ingredient-btn { width: 100%; }
