@@ -157,18 +157,31 @@ button.utility-btn:hover { background-color: #6c7a7b; }
     .recipe-print { page-break-after: always; }
 }
 
-/* Add to style.css */
 .meal-actions {
     display: flex;
     gap: 5px;
 }
 
+/* NEW COMBINED STYLE for both meal buttons */
+.export-btn,
 .delete-meal-btn {
     width: auto !important;
     display: inline-block !important;
     padding: 5px 10px !important;
     font-size: 0.8rem !important;
-    margin-left: 0 !important;
+    margin: 0 !important; /* This is the key fix */
+    border-radius: 4px;
+}
+
+/* Keep the individual colors */
+.export-btn {
+    background-color: #27ae60 !important;
+}
+.export-btn:hover {
+    background-color: #229954 !important;
+}
+
+.delete-meal-btn {
     background-color: #c0392b !important;
 }
 .delete-meal-btn:hover {
