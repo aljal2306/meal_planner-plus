@@ -32,6 +32,7 @@ const addMealForm = document.getElementById('add-meal-form');
 const closeAddMealModalBtn = document.getElementById('close-add-meal-modal-btn');
 const calendarModal = document.getElementById('calendar-modal');
 const closeCalendarModalBtn = document.getElementById('close-calendar-modal-btn');
+const modalCategoryFilter = document.getElementById('modal-category-filter');
 
 let allRecipes = [];
 
@@ -379,6 +380,20 @@ async function loadMealPlan() {
 function openAddMealModal(dateString) {
     addMealForm.reset();
     document.getElementById('meal-plan-date').value = dateString;
+
+    // Populate the new category filter
+    const categories = ['all', ...new Set(allRecipes.map(r => r.category).filter(c => c))];
+    modalCategoryFilter.innerHTML = '';
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = (category === 'all') ? 'All Categories' : category;
+        modalCategoryFilter.appendChild(option);
+    });
+    
+    // Populate the recipe dropdown (initially showing all recipes)
+    populateRecipeDropdown();
+
     addMealModal.classList.remove('hidden');
 }
 
@@ -394,6 +409,25 @@ async function handleAddMealForm(event) {
     const { error } = await supabase.from('meal_plan').upsert(mealData, { onConflict: 'plan_date, meal_type' });
     if (error) { console.error("Error saving meal:", error); alert('Failed to save meal.'); } 
     else { addMealModal.classList.add('hidden'); await loadMealPlan(); }
+}
+
+function populateRecipeDropdown() {
+    const selectedCategory = modalCategoryFilter.value;
+    const recipeSelect = document.getElementById('recipe-select');
+    
+    // Filter recipes based on the selected category
+    const filtered = (selectedCategory === 'all')
+        ? allRecipes
+        : allRecipes.filter(recipe => recipe.category === selectedCategory);
+
+    // Populate the dropdown
+    recipeSelect.innerHTML = '<option value="">-- Choose a recipe --</option>';
+    filtered.forEach(r => {
+        const option = document.createElement('option');
+        option.value = r.id;
+        option.textContent = r.name;
+        recipeSelect.appendChild(option);
+    });
 }
 
 async function deleteMealPlanEntry(mealId) {
@@ -533,6 +567,7 @@ showFormBtn.addEventListener('click', () => { addRecipeContainer.classList.remov
 cancelBtn.addEventListener('click', () => { addRecipeContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); recipeForm.reset(); recipeImportText.value = ''; ingredientInputs.innerHTML = '<label>Ingredients</label>'; addIngredientInput(); });
 closeCalendarModalBtn.addEventListener('click', () => { calendarModal.classList.add('hidden'); });
 calendarModal.addEventListener('click', (event) => { if (event.target === calendarModal) { calendarModal.classList.add('hidden'); } });
+modalCategoryFilter.addEventListener('change', populateRecipeDropdown);
 
 document.addEventListener('DOMContentLoaded', async () => { 
     addRecipeContainer.classList.add('hidden'); 
