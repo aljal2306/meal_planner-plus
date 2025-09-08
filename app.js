@@ -3,6 +3,7 @@ const SUPABASE_URL = 'https://gwrrzrxujbpnguyzpjme.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cnJ6cnh1amJwbmd1eXpwam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYwNjY2MTMsImV4cCI6MjA3MTY0MjYxM30.tkE0LawKsbolBHrqaS3iJno-LAd7skpl9pCQ-0Tuf1w';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// Get references to all the HTML elements
 const recipeForm = document.getElementById('recipe-form');
 const recipeList = document.getElementById('recipe-list');
 const mealPlanner = document.getElementById('meal-planner');
@@ -26,10 +27,15 @@ const closeViewModalBtn = document.getElementById('close-view-modal-btn');
 const addMealModal = document.getElementById('add-meal-modal');
 const addMealForm = document.getElementById('add-meal-form');
 const closeAddMealModalBtn = document.getElementById('close-add-meal-modal-btn');
+const calendarModal = document.getElementById('calendar-modal');
+const closeCalendarModalBtn = document.getElementById('close-calendar-modal-btn');
 
 let allRecipes = [];
 
-// RECIPE FUNCTIONS
+// -----------------------------------------------------------------------------
+// 2. RECIPE FUNCTIONS (CRUD, PARSING, FILTERING)
+// -----------------------------------------------------------------------------
+
 async function loadRecipes() {
     const { data, error } = await supabase.from('recipes').select('*').order('name', { ascending: true });
     if (error) { console.error('Error fetching recipes:', error); return; }
@@ -41,47 +47,43 @@ async function loadRecipes() {
 function populateFilters() {
     const categories = ['all', ...new Set(allRecipes.map(r => r.category).filter(c => c))];
     const authors = ['all', ...new Set(allRecipes.map(r => r.author).filter(a => a))];
-    populateSelect(categoryFilter, categories);
-    populateSelect(authorFilter, authors);
+    
+    populateSelect(categoryFilter, categories, "Select a category...");
+    populateSelect(authorFilter, authors, "All Chefs");
 }
 
-// in app.js
-function populateSelect(selectElement, items) {
+function populateSelect(selectElement, items, placeholderText) {
     const currentVal = selectElement.value;
     selectElement.innerHTML = '';
-
-    // Add a placeholder option for the category filter
-    if (selectElement.id === 'category-filter') {
-        const placeholder = document.createElement('option');
-        placeholder.value = ""; // Empty value will signal to hide the list
-        placeholder.textContent = "Select a category...";
-        selectElement.appendChild(placeholder);
-    }
     
+    // Add a placeholder/default option
+    const placeholder = document.createElement('option');
+    placeholder.value = (selectElement.id === 'category-filter') ? "" : "all";
+    placeholder.textContent = placeholderText;
+    if (selectElement.id === 'category-filter') { placeholder.selected = true; }
+    selectElement.appendChild(placeholder);
+
+    // Add the rest of the items
     items.forEach(item => {
+        if (item === 'all' && selectElement.id !== 'category-filter') return; // Skip 'all' if placeholder handles it
         const option = document.createElement('option');
         option.value = item;
-        option.textContent = (item === 'all') ? 'All' : item.charAt(0).toUpperCase() + item.slice(1);
+        option.textContent = item.charAt(0).toUpperCase() + item.slice(1);
         selectElement.appendChild(option);
     });
 
-    // Restore the previous selection or default to the placeholder
-    selectElement.value = currentVal || "";
+    selectElement.value = currentVal || ((selectElement.id === 'category-filter') ? "" : "all");
 }
+
 
 function renderRecipes() {
     const category = categoryFilter.value;
-    
-    // If the category filter is empty (placeholder is selected), hide the list
-    if (!category) {
-        recipeList.classList.add('hidden');
-        return; // Stop the function here
-    }
+    if (!category) { recipeList.classList.add('hidden'); return; }
 
     recipeList.innerHTML = '';
     const author = authorFilter.value;
     const searchTerm = searchInput.value.toLowerCase();
-
+    
     const filteredRecipes = allRecipes.filter(r => 
         (category === 'all' || r.category === category) &&
         (author === 'all' || r.author === author) &&
@@ -93,7 +95,6 @@ function renderRecipes() {
     } else {
         filteredRecipes.forEach(recipe => {
             const recipeEl = document.createElement('div');
-            // ... (the rest of the function remains the same)
             recipeEl.innerHTML = `
                 <div class="recipe-header">
                     <input type="checkbox" class="recipe-checkbox" value="${recipe.id}">
@@ -119,6 +120,7 @@ async function handleFormSubmit(event) {
     const category = document.getElementById('recipe-category').value;
     const author = document.getElementById('recipe-author').value;
     const instructionsText = document.getElementById('recipe-instructions').value;
+
     const ingredients = [];
     document.querySelectorAll('.ingredient-row').forEach(row => {
         const ingName = row.querySelector('.ingredient-name').value;
@@ -126,11 +128,15 @@ async function handleFormSubmit(event) {
         const unit = row.querySelector('.ingredient-unit').value;
         if (ingName && qty) { ingredients.push({ name: ingName, qty, unit }); }
     });
+
     if (!name || ingredients.length === 0 || !instructionsText) { alert('Please fill out name, ingredients, and instructions.'); return; }
+
     const instructions = instructionsText.split('\n').filter(line => line.trim() !== '');
     const recipeData = { name, category, author, ingredients, instructions };
+
     const { error } = recipeId ? await supabase.from('recipes').update(recipeData).eq('id', recipeId) : await supabase.from('recipes').insert([recipeData]);
     if (error) { alert(`Failed to save recipe: ${error.message}`); return; }
+
     recipeForm.reset();
     ingredientInputs.innerHTML = '<label>Ingredients</label>';
     addIngredientInput();
@@ -145,13 +151,16 @@ async function populateFormForEdit(id) {
     showFormBtn.classList.add('hidden');
     const { data: recipe, error } = await supabase.from('recipes').select('*').eq('id', id).single();
     if (error) { console.error('Error fetching recipe for edit:', error); return; }
+
     document.getElementById('recipe-id').value = recipe.id;
     document.getElementById('recipe-name').value = recipe.name;
     document.getElementById('recipe-category').value = recipe.category;
     document.getElementById('recipe-author').value = recipe.author;
     document.getElementById('recipe-instructions').value = recipe.instructions.join('\n');
+    
     ingredientInputs.innerHTML = '<label>Ingredients</label>';
     if (recipe.ingredients) { recipe.ingredients.forEach(ing => addIngredientInput(ing)); }
+    
     window.scrollTo(0, 0);
 }
 
@@ -180,19 +189,32 @@ function parseRecipeText() {
     const text = recipeImportText.value;
     if (!text.trim()) { alert('Please paste recipe text into the box first.'); return; }
     const lines = text.split('\n').filter(line => line.trim() !== '');
+    
     document.getElementById('recipe-name').value = lines.shift() || '';
+
     const ingredientsIndex = lines.findIndex(line => line.toLowerCase().includes('ingredients'));
     const instructionsIndex = lines.findIndex(line => line.toLowerCase().includes('instructions') || line.toLowerCase().includes('directions'));
-    if (ingredientsIndex === -1 || instructionsIndex === -1) { alert("Could not find 'Ingredients' and 'Instructions' headers."); document.getElementById('recipe-instructions').value = lines.join('\n'); return; }
+    
+    if (ingredientsIndex === -1 || instructionsIndex === -1) {
+        alert("Could not find 'Ingredients' and 'Instructions' headers. Please add them to your text.");
+        document.getElementById('recipe-instructions').value = lines.join('\n');
+        return;
+    }
+
     const ingredientLines = lines.slice(ingredientsIndex + 1, instructionsIndex);
     const instructionLines = lines.slice(instructionsIndex + 1);
+
     ingredientInputs.innerHTML = '<label>Ingredients</label>';
     ingredientLines.forEach(line => {
-        const parts = line.trim().match(/^([\d\/\.\s]+)\s?(\w*)\s(.*)/);
-        if (parts && parts.length === 4) { addIngredientInput({ qty: parts[1].trim(), unit: parts[2].trim(), name: parts[3].trim() }); } 
-        else { addIngredientInput({ name: line.trim() }); }
+        const parts = line.trim().match(/^([\d\/\.\s\-–—]+)\s?(\w*)\s(.*)/);
+        if (parts && parts.length === 4) {
+            addIngredientInput({ qty: parts[1].trim(), unit: parts[2].trim(), name: parts[3].trim() });
+        } else {
+            addIngredientInput({ name: line.trim() });
+        }
     });
     addIngredientInput();
+
     document.getElementById('recipe-instructions').value = instructionLines.join('\n');
     recipeImportText.value = '';
 }
@@ -200,18 +222,29 @@ function parseRecipeText() {
 async function viewRecipe(id) {
     const recipe = allRecipes.find(r => r.id === id);
     if (!recipe) return;
+
     document.getElementById('view-title').textContent = recipe.name;
     document.getElementById('view-category').textContent = `Category: ${recipe.category || 'N/A'}`;
     document.getElementById('view-author').textContent = `Chef: ${recipe.author || 'N/A'}`;
-    const ingredientList = document.getElementById('view-ingredients');
-    ingredientList.innerHTML = '';
-    if (recipe.ingredients) {
-        recipe.ingredients.forEach(ing => {
-            const li = document.createElement('li');
-            li.textContent = `${ing.qty || ''} ${ing.unit || ''} ${ing.name}`.trim();
-            ingredientList.appendChild(li);
+    
+    const scalingControls = document.getElementById('scaling-controls');
+    scalingControls.innerHTML = `
+        <label>Servings:</label>
+        <button onclick="updateIngredientQuantities(0.5)">0.5x</button>
+        <button class="active" onclick="updateIngredientQuantities(1)">1x</button>
+        <button onclick="updateIngredientQuantities(2)">2x</button>
+        <button onclick="updateIngredientQuantities(3)">3x</button>
+    `;
+    
+    scalingControls.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            scalingControls.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
         });
-    }
+    });
+
+    updateIngredientQuantities(1);
+
     const instructionList = document.getElementById('view-instructions');
     instructionList.innerHTML = '';
     if (recipe.instructions) {
@@ -221,7 +254,43 @@ async function viewRecipe(id) {
             instructionList.appendChild(li);
         });
     }
+    
     viewRecipeModal.classList.remove('hidden');
+}
+
+function updateIngredientQuantities(multiplier) {
+    const title = document.getElementById('view-title').textContent;
+    const recipe = allRecipes.find(r => r.name === title);
+    if (!recipe || !recipe.ingredients) return;
+    
+    const ingredientList = document.getElementById('view-ingredients');
+    ingredientList.innerHTML = '';
+
+    recipe.ingredients.forEach(ing => {
+        const originalQty = ing.qty.toString();
+        let newQty = originalQty;
+
+        try {
+            let numericValue = 0;
+            if (originalQty.includes('/')) {
+                const parts = originalQty.split(/[\s\/]/).filter(Boolean);
+                if (parts.length === 3) numericValue = parseInt(parts[0]) + parseInt(parts[1]) / parseInt(parts[2]);
+                else if (parts.length === 2) numericValue = parseInt(parts[0]) / parseInt(parts[1]);
+                else numericValue = parseFloat(originalQty);
+            } else {
+                numericValue = parseFloat(originalQty);
+            }
+            
+            if (!isNaN(numericValue)) {
+                let scaledValue = numericValue * multiplier;
+                newQty = Number(scaledValue.toFixed(2)).toString(); // Round to 2 decimal places
+            }
+        } catch (e) { /* Keep original if parsing fails */ }
+
+        const li = document.createElement('li');
+        li.textContent = `${newQty} ${ing.unit || ''} ${ing.name}`.trim();
+        ingredientList.appendChild(li);
+    });
 }
 
 // MEAL PLANNER & GROCERY LIST
@@ -274,7 +343,7 @@ async function loadMealPlan() {
             const mealName = meal.ad_hoc_meal || (meal.recipes ? meal.recipes.name : 'Unknown Recipe');
             mealEl.innerHTML = `
                 <div><span>${meal.meal_type}:</span> ${mealName}</div>
-                <button class="export-btn" onclick="exportToCalendar(${meal.id})">Calendar</button>
+                <button class="export-btn" onclick="openCalendarModal(${meal.id})">Calendar</button>
             `;
             mealList.appendChild(mealEl);
         }
@@ -299,24 +368,6 @@ async function handleAddMealForm(event) {
     const { error } = await supabase.from('meal_plan').upsert(mealData, { onConflict: 'plan_date, meal_type' });
     if (error) { console.error("Error saving meal:", error); alert('Failed to save meal.'); } 
     else { addMealModal.classList.add('hidden'); await loadMealPlan(); }
-}
-
-async function exportToCalendar(mealId) {
-    const { data: meal, error } = await supabase.from('meal_plan').select('*, recipes(name, instructions)').eq('id', mealId).single();
-    if (error || !meal) { alert('Could not find meal to export.'); return; }
-    const eventName = meal.ad_hoc_meal || meal.recipes.name;
-    const eventDetails = meal.ad_hoc_meal || meal.recipes.instructions.join('\n');
-    const startDate = new Date(meal.plan_date + 'T00:00:00');
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 1);
-    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
-    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
-    const eventDates = `${formattedStartDate}/${formattedEndDate}`;
-    const baseUrl = 'https://www.google.com/calendar/render?action=TEMPLATE';
-    const eventTitle = encodeURIComponent(`${meal.meal_type}: ${eventName}`);
-    const encodedDetails = encodeURIComponent(eventDetails);
-    const calendarUrl = `${baseUrl}&text=${eventTitle}&details=${encodedDetails}&dates=${eventDates}`;
-    window.open(calendarUrl, '_blank');
 }
 
 async function generateGroceryList() {
@@ -346,9 +397,87 @@ async function generateGroceryList() {
 
 function finalizeGroceryList() { /* ... implementation as before ... */ }
 async function shareGroceryList() { /* ... implementation as before ... */ }
+
+// COOKBOOK & CALENDAR FUNCTIONS
 function printCookbook() { /* ... implementation as before ... */ }
 
+async function openCalendarModal(mealId) {
+    const { data: meal, error } = await supabase.from('meal_plan').select('*, recipes(name, instructions)').eq('id', mealId).single();
+    if (error || !meal) { alert('Could not find meal to export.'); return; }
+    const eventName = meal.ad_hoc_meal || meal.recipes.name;
+    const eventDetails = meal.ad_hoc_meal || (meal.recipes.instructions ? meal.recipes.instructions.join('\n') : '');
+    const mealType = meal.meal_type;
+    const dateString = meal.plan_date;
+    document.getElementById('modal-recipe-title').textContent = `${mealType}: ${eventName}`;
+    document.getElementById('google-calendar-link').href = generateGoogleCalendarLink(eventName, eventDetails, dateString, mealType);
+    document.getElementById('ics-download-button').onclick = () => downloadIcsFile(eventName, eventDetails, dateString, mealType);
+    calendarModal.classList.remove('hidden');
+}
+
+function generateGoogleCalendarLink(eventName, eventDetails, dateString, mealType) { /* ... implementation as before ... */ }
+function downloadIcsFile(eventName, eventDetails, dateString, mealType) { /* ... implementation as before ... */ }
+
 // EVENT LISTENERS & INITIALIZATION
+// (Adding full implementations back for functions that were stubbed)
+function finalizeGroceryList() {
+    const finalList = document.getElementById('final-grocery-list');
+    finalList.innerHTML = '';
+    const checkedItems = document.querySelectorAll('#grocery-list input[type="checkbox"]:checked');
+    if (checkedItems.length === 0) { finalList.innerHTML = '<p>No items selected.</p>'; return; }
+    const ul = document.createElement('ul');
+    checkedItems.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item.parentElement.textContent.trim();
+        ul.appendChild(li);
+    });
+    finalList.appendChild(ul);
+}
+async function shareGroceryList() {
+    const listItems = document.querySelectorAll('#final-grocery-list li');
+    if (listItems.length === 0) { alert('Please create a final list before sharing.'); return; }
+    let shareText = 'My Grocery List:\n';
+    listItems.forEach(item => { shareText += `- ${item.textContent}\n`; });
+    if (navigator.share) {
+        try { await navigator.share({ title: 'Grocery List', text: shareText }); } catch (error) { console.error('Error sharing:', error); }
+    } else {
+        try { await navigator.clipboard.writeText(shareText); alert('Grocery list copied to clipboard!'); } catch (error) { alert('Could not copy list.'); }
+    }
+}
+function printCookbook() {
+    const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
+    const selectedIds = Array.from(checkedBoxes).map(box => box.value);
+    if (selectedIds.length === 0) { alert('Please select a recipe.'); return; }
+    window.location.href = `print.html?ids=${selectedIds.join(',')}`;
+}
+function generateGoogleCalendarLink(eventName, eventDetails, dateString, mealType) {
+    const eventTitle = encodeURIComponent(`${mealType}: ${eventName}`);
+    const startDate = new Date(dateString + 'T00:00:00');
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 1);
+    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
+    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
+    const eventDates = `${formattedStartDate}/${formattedEndDate}`;
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${encodeURIComponent(eventDetails)}&dates=${eventDates}`;
+}
+function downloadIcsFile(eventName, eventDetails, dateString, mealType) {
+    const eventTitle = `${mealType}: ${eventName}`;
+    const startDate = new Date(dateString + 'T00:00:00');
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 1);
+    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
+    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
+    const icsContent = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT', `DTSTART;VALUE=DATE:${formattedStartDate}`, `DTEND;VALUE=DATE:${formattedEndDate}`, `SUMMARY:${eventTitle}`, `DESCRIPTION:${eventDetails.replace(/\n/g, '\\n')}`, 'END:VEVENT', 'END:VCALENDAR'].join('\n');
+    const blob = new Blob([icsContent], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${eventName}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 addMealForm.addEventListener('submit', handleAddMealForm);
 closeAddMealModalBtn.addEventListener('click', () => addMealModal.classList.add('hidden'));
 recipeForm.addEventListener('submit', handleFormSubmit);
@@ -364,4 +493,13 @@ parseRecipeBtn.addEventListener('click', parseRecipeText);
 closeViewModalBtn.addEventListener('click', () => viewRecipeModal.classList.add('hidden'));
 showFormBtn.addEventListener('click', () => { addRecipeContainer.classList.remove('hidden'); showFormBtn.classList.add('hidden'); });
 cancelBtn.addEventListener('click', () => { addRecipeContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); recipeForm.reset(); recipeImportText.value = ''; ingredientInputs.innerHTML = '<label>Ingredients</label>'; addIngredientInput(); });
+closeCalendarModalBtn.addEventListener('click', () => { calendarModal.classList.add('hidden'); });
+calendarModal.addEventListener('click', (event) => { if (event.target === calendarModal) { calendarModal.classList.add('hidden'); } });
 document.addEventListener('DOMContentLoaded', async () => { addRecipeContainer.classList.add('hidden'); addIngredientInput(); await loadRecipes(); await renderMealPlanner(); });
+
+
+
+
+
+
+Gemini can make mistakes, so double-check it
