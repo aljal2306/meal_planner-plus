@@ -399,8 +399,20 @@ function finalizeGroceryList() { /* ... implementation as before ... */ }
 async function shareGroceryList() { /* ... implementation as before ... */ }
 
 // COOKBOOK & CALENDAR FUNCTIONS
-function printCookbook() { /* ... implementation as before ... */ }
+function printCookbook() {
+    // 1. Find all the checked recipe checkboxes
+    const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
+    const selectedIds = Array.from(checkedBoxes).map(box => box.value);
 
+    // 2. Check if any recipes were selected
+    if (selectedIds.length === 0) {
+        alert('Please select at least one recipe to generate a cookbook.');
+        return;
+    }
+
+    // 3. Navigate to the new print page with the IDs in the URL
+    window.location.href = `print.html?ids=${selectedIds.join(',')}`;
+}
 async function openCalendarModal(mealId) {
     const { data: meal, error } = await supabase.from('meal_plan').select('*, recipes(name, instructions)').eq('id', mealId).single();
     if (error || !meal) { alert('Could not find meal to export.'); return; }
