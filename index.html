@@ -106,11 +106,17 @@
                     <option value="Dessert">Dessert</option>
                     <option value="Snack">Snack</option>
                 </select>
+
+                <label for="modal-category-filter">Filter by Category</label>
+                <select id="modal-category-filter"></select>
+
                 <label for="recipe-select">Choose a Saved Recipe (Optional)</label>
                 <select id="recipe-select"></select>
+
                 <p class="or-divider">OR</p>
                 <label for="ad-hoc-input">Enter an Ad Hoc Meal</label>
                 <input type="text" id="ad-hoc-input" placeholder="e.g., Leftovers">
+                
                 <button type="submit">Save Meal</button>
                 <button type="button" id="close-add-meal-modal-btn" class="utility-btn">Cancel</button>
             </form>
