@@ -78,17 +78,25 @@ function populateSelect(selectElement, items, placeholderText) {
 
 function renderRecipes() {
     const category = categoryFilter.value;
-    if (!category) { recipeList.classList.add('hidden'); return; }
-
-    recipeList.innerHTML = '';
     const author = authorFilter.value;
     const searchTerm = searchInput.value.toLowerCase();
+
+    // If all filters are at their default state, hide the list.
+    // This happens on page load or when "Select a category" is chosen.
+    if (!category && author === 'all' && !searchTerm) {
+        recipeList.classList.add('hidden');
+        return;
+    }
+
+    recipeList.innerHTML = '';
     
-    const filteredRecipes = allRecipes.filter(r => 
-        (category === 'all' || r.category === category) &&
-        (author === 'all' || r.author === author) &&
-        r.name.toLowerCase().includes(searchTerm)
-    );
+    // The new filter logic allows an empty category
+    const filteredRecipes = allRecipes.filter(r => {
+        const categoryMatch = (!category || category === 'all' || r.category === category);
+        const authorMatch = (author === 'all' || r.author === author);
+        const searchMatch = r.name.toLowerCase().includes(searchTerm);
+        return categoryMatch && authorMatch && searchMatch;
+    });
 
     if (filteredRecipes.length === 0) {
         recipeList.innerHTML = '<p>No recipes match your filters.</p>';
@@ -110,6 +118,7 @@ function renderRecipes() {
             recipeList.appendChild(recipeEl);
         });
     }
+    // Make the recipe list visible as soon as any filter is used
     recipeList.classList.remove('hidden');
 }
 
