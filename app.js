@@ -417,66 +417,9 @@ async function openCalendarModal(mealId) {
 function generateGoogleCalendarLink(eventName, eventDetails, dateString, mealType) { /* ... implementation as before ... */ }
 function downloadIcsFile(eventName, eventDetails, dateString, mealType) { /* ... implementation as before ... */ }
 
-// EVENT LISTENERS & INITIALIZATION
-// (Adding full implementations back for functions that were stubbed)
-function finalizeGroceryList() {
-    const finalList = document.getElementById('final-grocery-list');
-    finalList.innerHTML = '';
-    const checkedItems = document.querySelectorAll('#grocery-list input[type="checkbox"]:checked');
-    if (checkedItems.length === 0) { finalList.innerHTML = '<p>No items selected.</p>'; return; }
-    const ul = document.createElement('ul');
-    checkedItems.forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = item.parentElement.textContent.trim();
-        ul.appendChild(li);
-    });
-    finalList.appendChild(ul);
-}
-async function shareGroceryList() {
-    const listItems = document.querySelectorAll('#final-grocery-list li');
-    if (listItems.length === 0) { alert('Please create a final list before sharing.'); return; }
-    let shareText = 'My Grocery List:\n';
-    listItems.forEach(item => { shareText += `- ${item.textContent}\n`; });
-    if (navigator.share) {
-        try { await navigator.share({ title: 'Grocery List', text: shareText }); } catch (error) { console.error('Error sharing:', error); }
-    } else {
-        try { await navigator.clipboard.writeText(shareText); alert('Grocery list copied to clipboard!'); } catch (error) { alert('Could not copy list.'); }
-    }
-}
-function printCookbook() {
-    const checkedBoxes = document.querySelectorAll('.recipe-checkbox:checked');
-    const selectedIds = Array.from(checkedBoxes).map(box => box.value);
-    if (selectedIds.length === 0) { alert('Please select a recipe.'); return; }
-    window.location.href = `print.html?ids=${selectedIds.join(',')}`;
-}
-function generateGoogleCalendarLink(eventName, eventDetails, dateString, mealType) {
-    const eventTitle = encodeURIComponent(`${mealType}: ${eventName}`);
-    const startDate = new Date(dateString + 'T00:00:00');
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 1);
-    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
-    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
-    const eventDates = `${formattedStartDate}/${formattedEndDate}`;
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${encodeURIComponent(eventDetails)}&dates=${eventDates}`;
-}
-function downloadIcsFile(eventName, eventDetails, dateString, mealType) {
-    const eventTitle = `${mealType}: ${eventName}`;
-    const startDate = new Date(dateString + 'T00:00:00');
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 1);
-    const formattedStartDate = startDate.toISOString().split('T')[0].replace(/-/g, '');
-    const formattedEndDate = endDate.toISOString().split('T')[0].replace(/-/g, '');
-    const icsContent = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT', `DTSTART;VALUE=DATE:${formattedStartDate}`, `DTEND;VALUE=DATE:${formattedEndDate}`, `SUMMARY:${eventTitle}`, `DESCRIPTION:${eventDetails.replace(/\n/g, '\\n')}`, 'END:VEVENT', 'END:VCALENDAR'].join('\n');
-    const blob = new Blob([icsContent], { type: 'text/calendar' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${eventName}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
+// -----------------------------------------------------------------------------
+// 6. EVENT LISTENERS & INITIALIZATION
+// -----------------------------------------------------------------------------
 
 addMealForm.addEventListener('submit', handleAddMealForm);
 closeAddMealModalBtn.addEventListener('click', () => addMealModal.classList.add('hidden'));
@@ -495,11 +438,10 @@ showFormBtn.addEventListener('click', () => { addRecipeContainer.classList.remov
 cancelBtn.addEventListener('click', () => { addRecipeContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); recipeForm.reset(); recipeImportText.value = ''; ingredientInputs.innerHTML = '<label>Ingredients</label>'; addIngredientInput(); });
 closeCalendarModalBtn.addEventListener('click', () => { calendarModal.classList.add('hidden'); });
 calendarModal.addEventListener('click', (event) => { if (event.target === calendarModal) { calendarModal.classList.add('hidden'); } });
-document.addEventListener('DOMContentLoaded', async () => { addRecipeContainer.classList.add('hidden'); addIngredientInput(); await loadRecipes(); await renderMealPlanner(); });
 
-
-
-
-
-
-Gemini can make mistakes, so double-check it
+document.addEventListener('DOMContentLoaded', async () => { 
+    addRecipeContainer.classList.add('hidden'); 
+    addIngredientInput(); 
+    await loadRecipes(); 
+    await renderMealPlanner(); 
+});
