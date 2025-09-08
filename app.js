@@ -377,6 +377,23 @@ async function handleAddMealForm(event) {
     else { addMealModal.classList.add('hidden'); await loadMealPlan(); }
 }
 
+async function deleteMealPlanEntry(mealId) {
+    if (confirm('Are you sure you want to remove this meal?')) {
+        const { error } = await supabase
+            .from('meal_plan')
+            .delete()
+            .eq('id', mealId);
+
+        if (error) {
+            console.error('Error deleting meal plan entry:', error);
+            alert('Failed to remove meal.');
+        } else {
+            // If deletion is successful, refresh the meal plan view
+            await loadMealPlan();
+        }
+    }
+}
+
 async function generateGroceryList() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
