@@ -3,21 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print Cookbook</title>
+    <title>Printable Cookbook</title>
+    
     <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Specific Styles for the Print Page */
+        body {
+            background-color: white;
+            color: black;
+            padding: 20px;
+        }
+
+        .print-recipe-card {
+            margin-bottom: 40px;
+            padding: 20px;
+            border-bottom: 2px solid #eee;
+            page-break-inside: avoid; /* Prevents a single recipe from splitting across pages */
+        }
+
+        .back-nav {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* Hides these elements when the actual printer dialog opens */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                padding: 0;
+            }
+            .print-recipe-card {
+                border-bottom: 1px solid #ccc;
+            }
+        }
+
+        h2 { color: #2c3e50; margin-top: 0; }
+        h3 { color: #2980b9; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        ul, ol { line-height: 1.6; }
+    </style>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
     <div class="container">
-        <div class="print-header no-print">
-            <h1>Print Preview</h1>
-            <p>Use your browser's "Share → Print" or "Save as PDF" feature now.</p>
-            <a href="index.html" class="back-button">← Back to App</a>
-            <hr>
+        <div class="no-print back-nav">
+            <button onclick="window.location.href='index.html'" class="utility-btn">← Back to Planner</button>
+            <button onclick="window.print()" style="background-color: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                Print This Cookbook
+            </button>
         </div>
-        <div id="cookbook-content">
-            </div>
+
+        <header class="no-print">
+            <h1>Cookbook Preview</h1>
+            <p>Below are your selected recipes. Use the button above to print or save as PDF.</p>
+            <hr>
+        </header>
+
+        <div id="cookbook-container">
+            <p>Loading your recipes...</p>
+        </div>
     </div>
+
     <script src="print.js"></script>
 </body>
 </html>
