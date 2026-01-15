@@ -1,49 +1,75 @@
-// Add your Supabase credentials here
+// 1. INITIALIZATION
+// !!! IMPORTANT: Replace these with your actual Supabase credentials !!!
 const SUPABASE_URL = 'https://gwrrzrxujbpnguyzpjme.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cnJ6cnh1amJwbmd1eXpwam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYwNjY2MTMsImV4cCI6MjA3MTY0MjYxM30.tkE0LawKsbolBHrqaS3iJno-LAd7skpl9pCQ-0Tuf1w';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const cookbookContent = document.getElementById('cookbook-content');
+// Using 'db' to stay consistent with app.js and avoid naming conflicts
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// This function runs as soon as the page loads
-async function loadSelectedRecipes() {
+const cookbookContainer = document.getElementById('cookbook-container');
+
+// 2. LOAD DATA FROM URL
+async function initPrint() {
     const params = new URLSearchParams(window.location.search);
     const ids = params.get('ids');
 
     if (!ids) {
-        cookbookContent.innerHTML = '<h2>No recipes selected.</h2><p><a href="index.html">Go back</a> to select recipes.</p>';
+        cookbookContainer.innerHTML = '<p>No recipes selected for printing.</p>';
         return;
     }
 
-    const selectedIds = ids.split(',');
-
-    const { data: recipes, error } = await supabase
-        .from('recipes')
-        .select('*')
-        .in('id', selectedIds)
-        .order('name');
-
-    if (error) {
-        console.error('Error fetching selected recipes:', error);
-        cookbookContent.innerHTML = '<h2>Could not load recipes.</h2>';
-        return;
-    }
-    
-    let html = '<h1>My Cookbook</h1>';
-    recipes.forEach(r => {
-        html += `
-            <div class="recipe-print">
-                <h2>${r.name}</h2>
-                <p><strong>Category:</strong> ${r.category || 'N/A'}</p>
-                <p><strong>Chef:</strong> ${r.author || 'N/A'}</p>
-                <h3>Ingredients</h3>
-                <ul>${r.ingredients.map(i => `<li>${i.qty} ${i.unit || ''} ${i.name}</li>`).join('')}</ul>
-                <h3>Instructions</h3>
-                <ol>${r.instructions.map(s => `<li>${s}</li>`).join('')}</ol>
-            </div>
-        `;
-    });
-    cookbookContent.innerHTML = html;
+    const recipeIds = ids.split(',');
+    await loadSelectedRecipes(recipeIds);
 }
 
-document.addEventListener('DOMContentLoaded', loadSelectedRecipes);
+// 3. FETCH RECIPES FROM DATABASE
+async function loadSelectedRecipes(ids) {
+    const { data, error } = await db
+        .from('recipes')
+        .select('*')
+        .in('id', ids);
+
+    if (error) {
+        console.error('Error fetching recipes for print:', error);
+        cookbookContainer.innerHTML = '<p>Error loading recipes. Please try again.</p>';
+        return;
+    }
+
+    renderPrintRecipes(data);
+}
+
+// 4. RENDER TO PAGE
+function renderPrintRecipes(recipes) {
+    cookbookContainer.innerHTML = '';
+
+    recipes.forEach(recipe => {
+        const recipeDiv = document.createElement('div');
+        recipeDiv.className = 'recipe-print';
+        
+        // Handle ingredients list
+        const ingredientsHtml = recipe.ingredients.map(ing => 
+            `<li>${ing.qty} ${ing.unit || ''} ${ing.name}</li>`
+        ).join('');
+
+        // Handle instructions list
+        const instructionsHtml = recipe.instructions.map(step => 
+            `<li>${step}</li>`
+        ).join('');
+
+        recipeDiv.innerHTML = `
+            <div class="print-recipe-card">
+                <h2>${recipe.name}</h2>
+                <p><strong>Category:</strong> ${recipe.category || 'N/A'} | <strong>Chef:</strong> ${recipe.author || 'N/A'}</p>
+                <hr>
+                <h3>Ingredients</h3>
+                <ul>${ingredientsHtml}</ul>
+                <h3>Instructions</h3>
+                <ol>${instructionsHtml}</ol>
+            </div>
+        `;
+        cookbookContainer.appendChild(recipeDiv);
+    });
+}
+
+// Start the process
+document.addEventListener('DOMContentLoaded', initPrint);
